@@ -36,7 +36,7 @@ def configure_tensorflow(seed=None):
     os.environ['KERAS_BACKEND'] = 'tensorflow'
     os.environ['USE_TENSORFLOW_KERAS'] = '1'
 
-    if seed:
+    if seed is not None:
         set_seed(seed)
 
     # do we need this?
