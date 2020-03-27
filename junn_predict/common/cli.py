@@ -6,10 +6,13 @@ from .logging import setup_logging, get_log_levels
 
 
 def get_common_argparser_and_setup(args=None):
+    if args is None:
+        args = sys.argv
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--tag', dest='tag', type=str, help='tag')
 
-    TunableSelectable.setup_and_parse(parser)
+    TunableSelectable.setup_and_parse(parser, args=args)
 
     parser.add_argument('input', metavar='input', type=str, nargs='*', help="input file(s)")
     parser.add_argument('--log-level', dest='log_level', type=str, choices=get_log_levels(), default='INFO')
@@ -20,11 +23,11 @@ def get_common_argparser_and_setup(args=None):
     setup_logging(args_parsed.log_level)
 
     if hasattr(args_parsed, 'NeuralNetwork') and args_parsed.NeuralNetwork:
-        sys.argv[1:] = [arg.replace('%NeuralNetwork', args_parsed.NeuralNetwork) for arg in sys.argv[1:]]
+        args = [arg.replace('%NeuralNetwork', args_parsed.NeuralNetwork) for arg in args]
 
     args_parsed, _ = parser.parse_known_args(args=args)
 
     if args_parsed.tag:
-        sys.argv[1:] = [arg.replace('%tag', args_parsed.tag) for arg in sys.argv[1:]]
+        args = [arg.replace('%tag', args_parsed.tag) for arg in args]
 
-    return parser
+    return args, parser

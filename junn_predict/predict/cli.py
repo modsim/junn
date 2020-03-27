@@ -76,7 +76,7 @@ def prepare_inputs_outputs(args):
 
 
 def prepare_argparser_and_setup(args=None):
-    parser = get_common_argparser_and_setup(args=args)
+    args, parser = get_common_argparser_and_setup(args=args)
 
     parser.add_argument('--check-connectors', default=False, action='store_true')
     parser.add_argument('--timepoints', default='0-', type=str)
@@ -95,7 +95,7 @@ def prepare_argparser_and_setup(args=None):
 
 # noinspection PyProtectedMember
 def main(args=None):
-    args = prepare_argparser_and_setup()
+    args = prepare_argparser_and_setup(args)
 
     if args.check_connectors:
         from .connectors import schema_model_mapping

@@ -10,6 +10,7 @@ from ..common.seeding import set_seed
 set_seed(0)
 
 import os
+import sys
 import logging
 
 import tqdm
@@ -87,9 +88,12 @@ def set_delayed_logger_filename(model_directory):
             break
 
 
-def main():
+def main(args=None):
+    if args is None:
+        args = sys.argv
+
     # StdErrLogRedirector.stop_redirect()
-    parser = get_common_argparser_and_setup()
+    args, parser = get_common_argparser_and_setup(args=args)
 
     parser.add_argument('--deterministic', dest='deterministic', default=False, action='store_true')
     # parser.add_argument('--validation', dest='validation', type=str, help="validation datasets", action='append')
@@ -108,7 +112,7 @@ def main():
     parser.add_argument('--disable-device-pinning', dest='device_pinning',
                         action='store_false', default=True)
 
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
     # StdErrLogRedirector.start_redirect()
     # StdErrLogRedirector.start_processing()
