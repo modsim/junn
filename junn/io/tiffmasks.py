@@ -51,11 +51,14 @@ def tiff_peek(file_name_or_tiff):
 
 
 def guess_frame_identifier(all_overlays):
-    return 't' if (np.array([overlay.position for overlay in all_overlays]) == 0).all() else 'position'
+    return 't_position' if (np.array([overlay.position for overlay in all_overlays]) == 0).all() else 'position'
 
 
 def _get_overlays(all_overlays):
     overlays = {}
+
+    if not isinstance(all_overlays, list):
+        all_overlays = [all_overlays]
 
     all_overlays = [ImagejRoi.frombytes(overlay) for overlay in all_overlays]
     frame_identifier = guess_frame_identifier(all_overlays)
