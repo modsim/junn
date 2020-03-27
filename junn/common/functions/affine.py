@@ -15,16 +15,6 @@ def radians(degrees):
     return degrees * const_pi_180
 
 
-# @tf.function
-# def get_warp_scale_matrix_and_new_shape(shift_x, shift_y, scale_x, scale_y):
-#     tan_shift_x, tan_shift_y = tf.tan(radians(shift_x)), tf.tan(radians(shift_y))
-#
-#     return tf.convert_to_tensor([
-#         [scale_x, tan_shift_y, 0.0],
-#         [tan_shift_x, scale_y, 0.0]
-#     ], dtype=tf.float32)
-
-
 @tf.function
 def shape_to_h_w(shape):
     """
@@ -36,8 +26,8 @@ def shape_to_h_w(shape):
     # TensorFlow does not like a 1 <= tf.rank(shape) <= 4 comparison!
     # noinspection PyChainedComparisons
     with tf.control_dependencies(
-            [tf.Assert(tf.rank(shape) >= 1 and tf.rank(shape) <= 4, ["Invalid shape passed to shape_to_h_w"])]):
-        if tf.rank(shape) == 4:
+            [tf.Assert(tf.size(shape) >= 1 and tf.size(shape) <= 4, ["Invalid shape passed to shape_to_h_w"])]):
+        if tf.size(shape) == 4:
             return shape[1], shape[2]
         else:
             return shape[0], shape[1]
