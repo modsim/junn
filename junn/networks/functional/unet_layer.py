@@ -15,7 +15,7 @@ class RecurrentConvolution2D(Layer):
 
         self.recurrent_num = recurrent_num
         self.initial_conv = Conv2D(**kwargs)
-        self.recurrent_conv = Conv2D(**kwargs, name="cookie")
+        self.recurrent_conv = Conv2D(**kwargs)
 
     def get_config(self):
         config = super().get_config().copy()
@@ -42,7 +42,7 @@ def unet_unit(tensor,
 
     convolution = partial(Conv2D, **parameters)
 
-    recurrent_pre_tensor = None
+    # recurrent_pre_tensor = None
     pre_tensor = None
 
     first_conv = convolution(name='%s_conv_first' % (name,))
@@ -51,10 +51,10 @@ def unet_unit(tensor,
     second_conv = convolution(name='%s_conv_second' % (name,))
     second_batch_norm = BatchNormalization(name='%s_batch_normalization_second' % (name,))
 
-    if recurrent_pre_tensor is not None:
-        tensor = concatenate([tensor, recurrent_pre_tensor])
-    else:
-        recurrent_pre_tensor = tensor
+    # if recurrent_pre_tensor is not None:
+    #     tensor = concatenate([tensor, recurrent_pre_tensor])
+    # else:
+    #     recurrent_pre_tensor = tensor
 
     tensor = first_conv(tensor)
 
