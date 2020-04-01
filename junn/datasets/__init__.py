@@ -9,18 +9,17 @@ from ..io.file_lists import generate_glob_and_replacer, prepare_for_regex
 from ..io.tiffmasks import tiff_peek, tiff_masks
 
 
-def dataset_from_tiff(file_name):
+def dataset_from_tiff(file_name, mode='dynamic'):
     """
     Loads a TIFF Stack with ImageJ ROIs as a TensorFlow Dataset (image, label).
     :param file_name:
+    :param mode:
     :return:
     """
     info = tiff_peek(file_name)
 
     dtype = tf.as_dtype(info.dtype)
     shape = (info.h, info.w)
-
-    mode = 'dynamic'
 
     if mode == 'preload':
         buffer = np.zeros((info.pages, 2,) + shape, dtype=info.dtype)

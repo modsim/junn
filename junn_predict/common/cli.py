@@ -4,10 +4,11 @@ from tunable import TunableSelectable
 
 from .logging import setup_logging, get_log_levels
 
+HELP = '--help'
 
 def get_common_argparser_and_setup(args=None):
     if args is None:
-        args = sys.argv
+        args = sys.argv[1:]
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--tag', dest='tag', type=str, help='tag')
@@ -16,7 +17,13 @@ def get_common_argparser_and_setup(args=None):
 
     parser.add_argument('input', metavar='input', type=str, nargs='*', help="input file(s)")
     parser.add_argument('--log-level', dest='log_level', type=str, choices=get_log_levels(), default='INFO')
-    parser.add_argument('--model', dest='model', type=str, help="model path (TensorFlow directory format)")
+    parser.add_argument('--model', dest='model', type=str, help="model path (TensorFlow format)")
+
+    help_removed = False
+
+    if HELP in args:
+        args.remove(HELP)
+        help_removed = True
 
     args_parsed, _ = parser.parse_known_args(args=args)
 
@@ -29,5 +36,8 @@ def get_common_argparser_and_setup(args=None):
 
     if args_parsed.tag:
         args = [arg.replace('%tag', args_parsed.tag) for arg in args]
+
+    if help_removed:
+        args.append(HELP)
 
     return args, parser

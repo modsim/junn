@@ -90,7 +90,7 @@ def set_delayed_logger_filename(model_directory):
 
 def main(args=None):
     if args is None:
-        args = sys.argv
+        args = sys.argv[1:]
 
     # StdErrLogRedirector.stop_redirect()
     args, parser = get_common_argparser_and_setup(args=args)

@@ -45,6 +45,9 @@ def remove_query_if_present(input_filename):
     return input_filename_to_use
 
 
+OUTPUT_WILDCARD = '{}'
+
+
 def prepare_inputs_outputs(args):
     inputs, output = args.input, args.output
 
@@ -61,7 +64,7 @@ def prepare_inputs_outputs(args):
             ]
             
     outputs = []
-    OUTPUT_WILDCARD = '{}'
+
     for input_filename in inputs:
         outputs.append(output.replace(OUTPUT_WILDCARD, remove_query_if_present(input_filename)))
 
