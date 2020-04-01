@@ -81,7 +81,7 @@ def local_rank():
     if hvd:
         return hvd.local_rank()
     else:
-        return
+        return 0
 
 
 def rank():
