@@ -6,9 +6,6 @@ from tensorflow.python.saved_model.signature_constants import DEFAULT_SERVING_SI
 
 def get_weight_counts(model):
     def sum_weights(layer_list):
-        # print(layer_list)
-        # for layer in layer_list:
-        #     print(layer.dtype)
         return sum(count_params(layer) for layer in layer_list)
 
     try:
