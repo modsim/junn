@@ -1,29 +1,9 @@
-import tensorflow as tf
-from .functional.unet_layer import unet
-from . import NeuralNetwork, Input, Model
-from .mixins import DeepImageJCompatibilityMixin
+from . import Input, Model, warn_unused_arguments
 from .mixins.preprocessing import PerImageStandardizationPreprocessingMixin
-from .mixins.tile_based_training import TilebasedTrainingMixin
-from .mixins.prediction import PredictionSignatureMixin
-from .mixins.tile_based_prediction import TilebasedPredictionMixin
-from ..common.losses import *
+from .mixins.tile_based_network import TilebasedNetwork
+from .mixins.losses import DiceLoss
 
-
-class TilebasedNetwork(DeepImageJCompatibilityMixin, TilebasedTrainingMixin, TilebasedPredictionMixin,
-                       PredictionSignatureMixin, NeuralNetwork, NeuralNetwork.Virtual):
-    def init(self, **kwargs):
-        # noinspection PyAttributeOutsideInit
-        self.tile_size = (128, 128, 1,)
-
-        if 'tile_size' in kwargs:
-            # noinspection PyAttributeOutsideInit
-            self.tile_size = (kwargs['tile_size'], kwargs['tile_size'], 1)
-
-
-class DiceLoss:
-    # noinspection PyMethodMayBeStatic
-    def get_loss(self):
-        return dice_loss
+from .functional.unet_layer import unet
 
 
 class Unet(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork):
@@ -32,6 +12,8 @@ class Unet(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork
             # defaults
         )
         parameters.update(self.parameters)
+
+        warn_unused_arguments(parameters, unet, self.log)
 
         self.log.info("Building a %s using parameters %r" % (self.__class__.__name__, parameters,))
 

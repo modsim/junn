@@ -27,7 +27,7 @@ from tensorflow.keras.models import Model
 
 from keras_nvidia_statistics import NvidiaDeviceStatistics
 
-from .util import get_weight_counts, get_default_signature, format_size, numpy_to_scalar
+from .util import get_weight_counts, get_default_signature, format_size, numpy_to_scalar, warn_unused_arguments
 
 from ..train import (
     Epochs, StepsPerEpoch,
@@ -49,6 +49,7 @@ jsonpickle_numpy.register_handlers()
 
 
 Input, Model = Input, Model
+warn_unused_arguments = warn_unused_arguments
 
 
 # noinspection PyMethodMayBeStatic

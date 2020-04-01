@@ -1,10 +1,9 @@
 import tensorflow as tf
 
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Input, Lambda
-
-from .Unet import TilebasedNetwork, DiceLoss
+from . import Input, Model, warn_unused_arguments
 from .mixins.preprocessing import PerImageStandardizationPreprocessingMixin
+from .mixins.tile_based_network import TilebasedNetwork
+from .mixins.losses import DiceLoss
 
 from .functional.msd import msd_net
 
@@ -15,6 +14,8 @@ class MSD(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork)
             # defaults
         )
         parameters.update(self.parameters)
+
+        warn_unused_arguments(parameters, msd_net, self.log)
 
         self.log.info("Building a %s using parameters %r" % (self.__class__.__name__, parameters,))
 
