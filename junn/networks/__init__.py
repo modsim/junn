@@ -127,10 +127,10 @@ class NeuralNetwork(Selectable):
     def print_model_statistics(self):
         stats = self._statistics_about_weights
 
-        self.log.info("Trainable:       %d Non-trainable:   %d Total (%s): %s" % (
-            stats['trainable'], stats['non_trainable'], stats['float'],
-            format_size((stats['trainable'] + stats['non_trainable']) * stats['float_size']))
-            )
+        self.log.info("Network parameter count, trainable:     % 12d", stats['trainable'])
+        self.log.info("Network parameter count, non-trainable: % 12d", stats['non_trainable'])
+        self.log.info("Network parameter size:                 % 19s (type %s)", format_size(
+            (stats['trainable'] + stats['non_trainable']) * stats['float_size']), stats['float'])
 
     def try_load(self, path):
         if not distributed.is_rank_zero():  # only rank zero may load ...
