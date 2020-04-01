@@ -2,8 +2,7 @@ from tensorflow.keras.layers import (
     Layer, Conv2D, Conv2DTranspose, Dropout, BatchNormalization,
     concatenate,
     MaxPooling2D, UpSampling2D,
-    Add, Activation, Concatenate,
-    Lambda, Reshape
+    Add, Activation, Reshape
 )
 
 from functools import partial
