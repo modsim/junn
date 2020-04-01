@@ -19,8 +19,11 @@ def configure_tensorflow(seed=None):
     tf_log = 'TF_CPP_MIN_LOG_LEVEL'
     tf_log_level = '2'
     if tf_log not in os.environ:
-        pass
-        # os.environ[tf_log] = tf_log_level
+        # pass
+        os.environ[tf_log] = tf_log_level
+        # I tried catching TF messages by redirecting stderr, but it is a mess, since any
+        # important error messages (stderr!) get swallowed as well.
+        # TF needs better logging handling, see https://github.com/tensorflow/tensorflow/issues/37390
 
     import tensorflow as tf
 
@@ -41,4 +44,3 @@ def configure_tensorflow(seed=None):
 
     # do we need this?
     # https://www.tensorflow.org/api_docs/python/tf/config/threading
-
