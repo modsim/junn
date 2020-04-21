@@ -51,6 +51,8 @@ OUTPUT_WILDCARD = '{}'
 def prepare_inputs_outputs(args):
     inputs, output = args.input, args.output
 
+    log.info("Checking inputs (%r) and outputs (%r)", inputs, output)
+
     if len(inputs) == 1:
         intermediate_input = inputs[0]
 
@@ -119,22 +121,24 @@ def main(args=None):
     if suggested_connector:
         pass  # set tunable connector to something, if not explicitly set
 
+    if args.model is None:
+        raise RuntimeError('Please specify a model/connector argument.')
+
     mc = ModelConnector(args.model)
     signature = 'predict' if not isinstance(mc, HTTPConnector) else 'predict_png'
 
     def predict(input_data):
         return mc.call(signature, input_data)
 
-    print("Successfully connected", mc.__class__.__name__, "with following signatures available:", mc.get_signatures())
-
-    # /
+    log.info("Successfully connected %s with following signatures available: %r",
+             mc.__class__.__name__,
+             mc.get_signatures())
 
     # prepare inputs
 
     inputs_outputs = prepare_inputs_outputs(args)
 
     for input_filename, output_filename in inputs_outputs:
-
         predict_file_name_with_args(args, input_filename, output_filename, predict)
 
 
