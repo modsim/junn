@@ -1,0 +1,53 @@
+{% set name = "junn-predict" %}
+{% set version = "0.0.1.dev1" %}
+{% set sha256 = "" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  # fn: {{ name }}-{{ version }}.tar.gz
+  # url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  # sha256: {{ sha256 }}
+  path: ../..
+
+build:
+  number: 0
+  script: BUILD_PACKAGE=junn-predict {{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv
+  noarch: python
+
+requirements:
+  build:
+    - python >=3.5
+    - pip
+  run:
+    - python >=3.5
+    - numpy
+    - scipy
+    - scikit-image
+    - jsonpickle
+    - colorlog
+    - roifile
+    - tifffile
+    - pilyso-io
+    - tunable
+    #- opencv
+
+test:
+  imports:
+    - junn_predict
+
+about:
+  home: https://github.com/modsim/junn
+  license: BSD-2-Clause
+  license_family: BSD
+  summary: 'junn'
+  description: |
+    junn
+  doc_url: https://github.com/modsim/junn
+  dev_url: https://github.com/modsim/junn
+
+extra:
+  recipe-maintainers:
+    - csachs
