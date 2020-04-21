@@ -16,6 +16,8 @@ _build/
 MANIFEST
 *.egg-info/
 
+.coverage
+
 # OS generated files #
 ######################
 .DS_Store
