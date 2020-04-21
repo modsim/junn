@@ -16,6 +16,12 @@ class TilebasedPredictionMixin:
             image = self.get_raw_fn()(image)
             image = tf.expand_dims(image, axis=0)
 
+            # image = tf.cond(
+            #     tf.shape(image)[3] > 1,
+            #     lambda: tf.expand_dims(tf.reduce_mean(image, axis=3), axis=-1),
+            #     lambda: image
+            # )
+
             if tf.shape(image)[3] > 1:
                 image = tf.reduce_mean(image, axis=3)
                 image = tf.expand_dims(image, axis=-1)
