@@ -51,8 +51,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'recommonmark'
+    'sphinx.ext.viewcode'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -293,10 +292,3 @@ try:
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 except ImportError:
     pass
-
-from recommonmark.transform import AutoStructify
-
-def setup(app):
-    app.add_config_value('recommonmark_config', {
-    }, True)
-    app.add_transform(AutoStructify)
