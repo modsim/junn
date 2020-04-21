@@ -17,7 +17,7 @@ LABEL maintainer=c.sachs@fz-juelich.de
 COPY . /tmp/junnbuild/
 
 RUN apt-get update && \
-    apt-get install -y wget libglib2.0-0 libnvinfer6 libnvinfer-plugin6 && \
+    apt-get install -y wget libglib2.0-0 libnvinfer6 libnvinfer-plugin6 build-essential && \
     CONDA_INSTALLER=https://repo.anaconda.com/miniconda/Miniconda3-py37_4.8.2-Linux-x86_64.sh && \
     # https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
     wget --quiet $CONDA_INSTALLER -O ~/conda-installer.sh && \
@@ -34,7 +34,7 @@ RUN apt-get update && \
     date && \
     cd /tmp/junnbuild && \
     conda config --add channels conda-forge --add channels bioconda --add channels csachs && \
-    conda install -y conda-build conda-verify ipython && \
+    conda install -y conda-build conda-verify ipython mpich && \
     conda build recipe/junn-predict-recipe && \
     conda install -y -c local junn-predict && \
     conda build recipe && \
@@ -47,6 +47,7 @@ RUN apt-get update && \
     # tunable upgrade can be skipped once new tunable is in anaconda cloud
     pip install tensorflow tensorflow-addons && \
     pip install opencv-python-headless && \
+    pip install horovod && \
     date && \
     echo "Done with JUNN building/installing."
 
