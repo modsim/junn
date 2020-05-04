@@ -45,7 +45,11 @@ def get_gpu_memory_usages():
         import py3nvml.py3nvml as nvml
     except ImportError:
         return [0.0]
-    nvml.nvmlInit()
+
+    try:
+        nvml.nvmlInit()
+    except nvml.NVMLError_LibraryNotFound:
+        return [0.0]
 
     device_count = nvml.nvmlDeviceGetCount()
 
