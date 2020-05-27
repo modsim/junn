@@ -197,10 +197,9 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
                 with Timed() as time_prediction:
 
                     prediction = predict(input_data_for_prediction)
+                    prediction = np.array(prediction)
 
                 with Timed() as time_io_write:
-
-                    prediction = np.array(prediction)
 
                     if output_type == 'raw':
                         tiff_output.save(prediction)
