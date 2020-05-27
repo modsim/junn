@@ -25,6 +25,9 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 
+from tensorflow.keras.utils import get_custom_objects
+import tensorflow_addons.activations as tfa_activations
+
 from keras_nvidia_statistics import NvidiaDeviceStatistics
 
 from .util import get_weight_counts, get_default_signature, format_size, numpy_to_scalar, warn_unused_arguments
@@ -50,6 +53,13 @@ jsonpickle_numpy.register_handlers()
 
 Input, Model = Input, Model
 warn_unused_arguments = warn_unused_arguments
+
+
+# bring TensorFlow Addons activations into 'normal' namespace
+for activation in dir(tfa_activations):
+    decorated = 'Addons>%s' % (activation,)
+    if decorated in get_custom_objects():
+        get_custom_objects()[activation] = get_custom_objects()[decorated]
 
 
 # noinspection PyMethodMayBeStatic
