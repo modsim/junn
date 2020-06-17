@@ -106,7 +106,11 @@ def unet_level(tensor,
             tensor = Conv2D(filters, 3, strides=2, padding='same', activation=activation)(tensor)
 
         tensor = unet_level(tensor, filters=int(filters * level_factor), level=level - 1, total_levels=total_levels,
-                            dropout_up=dropout_up, dropout_down=dropout_down, name=name, recurrent_num=recurrent_num)
+                            dropout_up=dropout_up, dropout_down=dropout_down,
+                            just_convolutions=just_convolutions,
+                            activation=activation, batch_normalization=batch_normalization, kernel_size=kernel_size,
+                            residual_connections=residual_connections, recurrent_num=recurrent_num,
+                            name=name)
 
         if not just_convolutions:
             tensor = UpSampling2D()(tensor)
