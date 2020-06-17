@@ -1,4 +1,5 @@
 from .model_connector import ModelConnector
+from ...common.tensorflow_addons import try_load_tensorflow_addons
 
 
 class LocalModel(ModelConnector, ModelConnector.Default):
@@ -9,6 +10,9 @@ class LocalModel(ModelConnector, ModelConnector.Default):
     def __init__(self, arg):
         super().__init__(arg)
         import tensorflow as tf
+
+        try_load_tensorflow_addons()
+
         self.model = tf.saved_model.load(arg)
 
     def get_signatures(self):

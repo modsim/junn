@@ -30,6 +30,7 @@ import tensorflow_addons.activations as tfa_activations
 
 from keras_nvidia_statistics import NvidiaDeviceStatistics
 
+from junn_predict.common.tensorflow_addons import try_load_tensorflow_addons
 from .util import get_weight_counts, get_default_signature, format_size, numpy_to_scalar, warn_unused_arguments
 
 from ..train import (
@@ -54,13 +55,7 @@ jsonpickle_numpy.register_handlers()
 Input, Model = Input, Model
 warn_unused_arguments = warn_unused_arguments
 
-
-# bring TensorFlow Addons activations into 'normal' namespace
-for activation in dir(tfa_activations):
-    decorated = 'Addons>%s' % (activation,)
-    if decorated in get_custom_objects():
-        get_custom_objects()[activation] = get_custom_objects()[decorated]
-
+try_load_tensorflow_addons()
 
 # noinspection PyMethodMayBeStatic
 class NeuralNetwork(Selectable):
