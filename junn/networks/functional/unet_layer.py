@@ -131,7 +131,7 @@ def unet_level(tensor,
 def unet(input_tensor, levels=4, filters=64, activation='relu', output_channels=1, dropout_down=0.0, dropout_up=0.0,
          just_convolutions=False, batch_normalization=True, kernel_size=3, residual_connections=False,
          level_factor=2.0, last_activation=None, recurrent_num=0,
-         name='unet', categorical=False, **kwargs):
+         name='unet', categorical=False, no_transpose=False, **kwargs):
 
     if last_activation is None:  # set defaults, only last_activation is dependent on categorical
         if not categorical:
@@ -148,7 +148,10 @@ def unet(input_tensor, levels=4, filters=64, activation='relu', output_channels=
                         residual_connections=residual_connections,
                         )
     if not categorical:
-        tensor = Conv2DTranspose(filters=output_channels, kernel_size=1, activation=last_activation)(tensor)
+        if no_transpose:
+            tensor = Conv2D(filters=output_channels, kernel_size=1, activation=last_activation)(tensor)
+        else:
+            tensor = Conv2DTranspose(filters=output_channels, kernel_size=1, activation=last_activation)(tensor)
     else:
         tensor = Conv2D(filters=output_channels, kernel_size=1, activation='linear')(tensor)
         tile_size = tuple([int(dim) for dim in input_tensor.shape[1:3]])
