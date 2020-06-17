@@ -205,7 +205,7 @@ def main(args=None):
 
     log.info("Starting training ...")
     if distributed.is_rank_zero():
-        log.info("You can investigate metrics using tensorboard, run:\npython -m tensorboard.main --logdir %s",
+        log.info("You can investigate metrics using tensorboard, run:\npython -m tensorboard.main --logdir \"%s\"",
                  os.path.abspath(args.model))
 
     set_delayed_logger_filename(args.model)
