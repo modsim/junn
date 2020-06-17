@@ -46,6 +46,17 @@ LOG_FILE_PATTERN = 'junn.{pid}.log'
 log = logging.getLogger(__name__)
 
 
+def pad_to(input_, target_shape):
+    pad = [[0, ts-is_] for is_, ts in zip(input_.shape, target_shape)]
+    return np.pad(input_, pad)
+
+
+def pad_all_arrays_to_largest(*args):
+    sizes = np.array([arg.shape for arg in args])
+    sizes = sizes.max(axis=0)
+    return [pad_to(arg, sizes) for arg in args]
+
+
 def output_training_data_and_benchmark(output_dataset, output_dataset_count, nn, dataset):
     if not distributed.is_rank_zero():
         return
@@ -61,17 +72,25 @@ def output_training_data_and_benchmark(output_dataset, output_dataset_count, nn,
     benchmark_sample_count = 1000
     log.info("Benchmark for %d samples", benchmark_sample_count)
     for image, labels in prepared_dataset.take(1):
-        intermediate = np.concatenate([image[0][np.newaxis, ...], labels[0][np.newaxis, ...]], axis=0)
+        intermediate = np.concatenate(pad_all_arrays_to_largest(image[0][np.newaxis, ...], labels[0][np.newaxis, ...]), axis=0)
+        intermediate = intermediate[:, np.newaxis, :, :, :]
+        intermediate = np.swapaxes(intermediate, 1, 4)
+
     for image, labels in tqdm.tqdm(prepared_dataset.take(benchmark_sample_count), unit=' samples',
                                    unit_scale=batch_size):
         pass
+
+    # ImageJ TIFF Files have TZCYXS order
     tiff_output = tifffile_memmap(output_dataset,
                                   shape=(output_dataset_count * batch_size,) + intermediate.shape,
                                   dtype=intermediate.dtype, imagej=True)
     n = 0
     for image_batch, labels_batch in prepared_dataset.take(output_dataset_count):
         for image, labels in zip(image_batch, labels_batch):
-            output = np.concatenate([image[np.newaxis, ...], labels[np.newaxis, ...]], axis=0)[np.newaxis]
+            output = np.concatenate(pad_all_arrays_to_largest(image[np.newaxis, ...], labels[np.newaxis, ...]), axis=0)
+            output = output[:, np.newaxis, :, :, :]
+            output = np.swapaxes(output, 1, 4)
+
             tiff_output[n] = output
             n += 1
 
