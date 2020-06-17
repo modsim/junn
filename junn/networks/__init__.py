@@ -162,10 +162,11 @@ class NeuralNetwork(Selectable):
             # restore history
             history = jsonpickle.loads(self.get_asset(self.ASSET_HISTORY))
 
-            # try:
-            self.current_epoch = int(max(history['epoch'])) + 1  # the current one will be the /next/
-            # except ValueError:
-            #     self.current_epoch = 1
+            try:
+                self.current_epoch = int(max(history['epoch'])) + 1  # the current one will be the /next/
+            except ValueError:
+                self.log.warning("Tried to load existing saved model, but history data was apparently corrupted.")
+                self.current_epoch = 1
             self.history = history
         else:
             pass
