@@ -89,6 +89,7 @@ def prepare_argparser_and_setup(args=None):
     parser.add_argument('--channel', type=int, default=0)
     parser.add_argument('--signature', type=str, default='predict')  # alternatively, take from const
     parser.add_argument('--overwrite', default=False, action='store_true')
+    parser.add_argument('--timing-precision', default=3, type=int)
     parser.add_argument('--output', type=str, help="output", default='{}_segmented.tif')
     parser.add_argument('--output-type',
                         choices=['roi', 'raw', 'rawroi'], default='roi', type=str, help="output_type")
@@ -101,6 +102,8 @@ def prepare_argparser_and_setup(args=None):
 # noinspection PyProtectedMember
 def main(args=None):
     args = prepare_argparser_and_setup(args)
+
+    Timed.precision = args.timing_precision
 
     if args.check_connectors:
         from .connectors import schema_model_mapping
@@ -238,7 +241,7 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
 
                 log.info(
                     "Predicted position %d/%d timepoint %d/%d, timings: "
-                    "Prediction: %.3fs IO read: %.3fs IO write: %.3fs",
+                    "Prediction: %ss IO read: %ss IO write: %ss",
                     n_p + 1, len(positions), n_t + 1, len(timepoints),
                     time_prediction, time_io_read, time_io_write)
 

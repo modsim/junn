@@ -2,6 +2,9 @@ import time
 
 
 class Timed:
+
+    precision = 3
+
     def __init__(self, name=None):
         self.name = name
         self.elapsed = float('nan')
@@ -17,3 +20,6 @@ class Timed:
 
     def __float__(self):
         return self.elapsed
+
+    def __str__(self):
+        return ('%%.%df' % self.precision) % self.elapsed
