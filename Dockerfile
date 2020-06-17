@@ -45,7 +45,7 @@ RUN apt-get update && \
     conda build purge-all && \
     pip uninstall -y tunable && pip install https://github.com/csachs/tunable/archive/master.zip && \
     # tunable upgrade can be skipped once new tunable is in anaconda cloud
-    pip install tensorflow tensorflow-addons && \
+    pip install tensorflow tensorflow-addons tensorflow-serving-api && \
     pip install opencv-python-headless && \
     pip install horovod && \
     date && \
