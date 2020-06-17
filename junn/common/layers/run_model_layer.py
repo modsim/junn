@@ -96,7 +96,7 @@ class RunModelTiled(Layer):
         batched_input_shape = (
             (intermediate_batched_input_shape[0] * intermediate_batched_input_shape[1],) +
             self.block_size +
-            (1,)
+            (raw_input_tensor_shape[-1],)
         )
 
         batched_input = tf.reshape(intermediate_batched_input, batched_input_shape)
@@ -129,11 +129,16 @@ class RunModelTiled(Layer):
                                 ),
             loop_vars=(0, collector_tensor),
             parallel_iterations=self.parallel_iterations,
-            back_prop=False,
             swap_memory=False,
         )
 
         result = collector_tensor.stack()
+
+        # reconsider this shape assembly
+        new_last_dim = tf.shape(result)[-1]
+
+        raw_batched_input_shape = tf.concat([raw_batched_input_shape[:-1], (new_last_dim,)], axis=0)
+        batched_input_shape = tf.concat([batched_input_shape[:-1], (new_last_dim,)], axis=0)
 
         new_result_shape = tf.shape(result)
 
@@ -145,7 +150,7 @@ class RunModelTiled(Layer):
             batched_input_shape = (
                     (intermediate_batched_input_shape[0] * intermediate_batched_input_shape[1],) +
                     (self.block_size[0] - self.overlap[0], self.block_size[1] - self.overlap[1]) +
-                    (1,)
+                    (new_last_dim,)
             )
             raw_batched_input_shape = tf.concat([
                 [(self.block_size[0] - self.overlap[0]) * (self.block_size[1] - self.overlap[1])],
