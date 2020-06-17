@@ -1,5 +1,6 @@
 import logging
 
+import sys
 import tqdm
 import colorlog
 
@@ -50,7 +51,7 @@ def setup_logging(level):
     log_format = "%(asctime)-15s.%(msecs)03d %(process)d %(levelname)s %(name)s %(message)s"
     log_datefmt = '%Y-%m-%d %H:%M:%S'
     tqdm_log_handler.setFormatter(
-        colorlog.ColoredFormatter(fmt='%(log_color)s' + log_format, datefmt=log_datefmt)
+        colorlog.TTYColoredFormatter(fmt='%(log_color)s' + log_format, datefmt=log_datefmt, stream=sys.stdout)
     )
     buffer = DelayedFileLog()
     log_handlers = [
