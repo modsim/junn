@@ -34,7 +34,7 @@ def test_shape_to_h_w(tf_eager):
 
         from tensorflow.python.framework.errors_impl import InvalidArgumentError
 
-        with pytest.raises(InvalidArgumentError) as e:
+        with pytest.raises(InvalidArgumentError):
             assert tuple(shape_to_h_w([999, 15, 800, 600, 3])) == (800, 600)
 
 
@@ -58,6 +58,7 @@ def test_tfm_shift():
     assert (tfm_shift(x=5.0, y=5.0) @ tfm_shift(x=-5.0, y=-5) == tfm_identity()).numpy().all()
 
 
+# noinspection DuplicatedCode
 def test_tfm_reflect(tf_eager):
     with tf_eager(True):
         assert (tfm_reflect(x=5.0) @ tfm_reflect(x=5.0) == tfm_identity()).numpy().all()

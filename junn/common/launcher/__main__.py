@@ -46,6 +46,7 @@ def get_gpu_memory_usages():
     except ImportError:
         return [0.0]
 
+    # noinspection PyUnresolvedReferences
     try:
         nvml.nvmlInit()
     except nvml.NVMLError_LibraryNotFound:

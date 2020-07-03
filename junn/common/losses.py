@@ -46,6 +46,7 @@ def weighted_loss(y_true, y_pred, y_weight):
             tf.reduce_sum((y_true * y_pred * y_weight) + ((1 - y_true) * (1 - y_pred) * y_weight))
             / tf.reduce_sum(y_weight))
 
+
 @tf.function
 def flatten_and_clip(values):
     return tf.clip_by_value(tf.reshape(values, [-1]), 0, 1)

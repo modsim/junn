@@ -175,8 +175,8 @@ class RunModelTiled(Layer):
             reassembled_result = tf.batch_to_space(reshaped_result, self.block_size, crops=crops)
         else:
             # TODO: this does not 100% make sense, since apparently at some point W/H are swapped in some of the tf ops
-            crop_dim_1 = ((raw_input_tensor_shape[1] % (self.block_size[0] - self.overlap[0])) - self.overlap[0]) // 2
-            crop_dim_2 = ((raw_input_tensor_shape[2] % (self.block_size[1] - self.overlap[1])) - self.overlap[1]) // 2
+            # crop_dim_1 = ((raw_input_tensor_shape[1] % (self.block_size[0] - self.overlap[0])) - self.overlap[0]) // 2
+            # crop_dim_2 = ((raw_input_tensor_shape[2] % (self.block_size[1] - self.overlap[1])) - self.overlap[1]) // 2
             # TODO: surprise: it's not working...
             # TODO: or does it? 2020-01-06
             # <--

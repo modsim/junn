@@ -4,7 +4,6 @@ import os.path
 import numpy as np
 import tensorflow as tf
 
-from ..io import REGION_FOREGROUND, REGION_BACKGROUND, REGION_BORDER
 from ..io.file_lists import generate_glob_and_replacer, prepare_for_regex
 from ..io.tiffmasks import tiff_peek, tiff_masks
 

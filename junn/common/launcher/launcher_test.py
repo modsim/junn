@@ -6,6 +6,7 @@ from contextlib import contextmanager
 
 import sys
 
+
 @contextmanager
 def alter_sys_argv(new_sys_argv=None):
     if new_sys_argv is None:
@@ -26,5 +27,5 @@ def test_launcher():
 
 def test_launcher_nogpu():
     with alter_sys_argv(['-nogpu', 'train', '--help']):
-        with pytest.raises(SystemExit) as e:
+        with pytest.raises(SystemExit):
             main()

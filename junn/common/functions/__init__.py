@@ -106,13 +106,12 @@ def pad_to(input_, target_block_size, mode='REFLECT'):
     """
     image_shape = tf.shape(input_)
 
-    # paddings = tf.convert_to_tensor([
-    #         [0,
-    #          tf.cond(target_block_size[0] >= image_shape[0], lambda: target_block_size[0] - image_shape[0], lambda: 0)],
-    #         [0,
-    #          tf.cond(target_block_size[1] >= image_shape[1], lambda: target_block_size[1] - image_shape[1], lambda: 0)],
-    #         [0,
-    #          0]
+    # paddings = tf.convert_to_tensor(
+    #     [[0,
+    #       tf.cond(target_block_size[0] >= image_shape[0], lambda: target_block_size[0] - image_shape[0], lambda: 0)],
+    #      [0,
+    #       tf.cond(target_block_size[1] >= image_shape[1], lambda: target_block_size[1] - image_shape[1], lambda: 0)],
+    #      [0,0]
     # ])
 
     paddings = tf.convert_to_tensor([

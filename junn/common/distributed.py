@@ -16,7 +16,7 @@ _initialized = False
 
 def is_running_distributed():
     """
-    Returns True if JUNN is running distributed and Horovod is inizialized.
+    Returns True if JUNN is running distributed and Horovod is initialized.
     :return:
     """
     return _running_distributed

@@ -1,7 +1,6 @@
 from tensorflow.keras.callbacks import Callback
 import time
 import numpy as np
-from tifffile import imread as tifffile_imread
 
 import tensorflow as tf
 
@@ -42,7 +41,6 @@ class TensorBoardSegmentationCallback(Callback):
                                                   ))
 
         self.metrics = metrics if metrics else []
-
 
     @staticmethod
     def _prepare_result(result):

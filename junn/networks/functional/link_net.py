@@ -30,7 +30,7 @@ def link_net(
     if categorical:
         raise NotImplementedError('categorical prediction currently not implemented.')
 
-    # having a upsample as a very late step leads to 2x2 blocked images, which is too unprecise for our usage
+    # having a up-sample as a very late step leads to 2x2 blocked images, which is too imprecise for our usage
 
     depths = {
         1: dict(m=64, n=64),
@@ -129,7 +129,7 @@ def link_net(
 
     tensor = inner_pair(tensor, depth=min_depth)
 
-    # they differentiate between full convolution (apparently, input=ouput size) and convolution (apparently mode=valid)
+    # they differentiate between full conv. (apparently, input=output size) and convolution (apparently mode=valid)
     # we only do full convolutions in the code here
 
     tensor = Conv2DTranspose(filters=32, kernel_size=3, padding='same', strides=2, activation=activation)(tensor)

@@ -11,13 +11,12 @@ import tensorflow as tf
 # tf.config.experimental_run_functions_eagerly(True)
 
 import pytest
-import os
 
 from junn.train.cli import main
 
 
 def test_main_no_args():
-    with pytest.raises(SystemExit) as e:
+    with pytest.raises(SystemExit):
         main([])
 
 
@@ -31,8 +30,9 @@ def test_main_dataset_benchmark(tmpdir, empty_training_data):
 
 def check_filenames(model_path):
     existing_filenames = set([filename.basename for filename in model_path.listdir()])
-    expected_filenames = {'saved_model.pb', 'checkpoint', 'cp.ckpt.index', 'train', 'resultImage.tiff', 'exampleImage.tiff',
-                          'postprocessing.txt', 'preprocessing.txt', 'config.xml', 'assets', 'variables'}
+    expected_filenames = {'saved_model.pb', 'checkpoint', 'cp.ckpt.index', 'train',
+                          'resultImage.tiff', 'exampleImage.tiff', 'postprocessing.txt',
+                          'preprocessing.txt', 'config.xml', 'assets', 'variables'}
 
     expected_filenames |= {'training_data'}
 
@@ -63,13 +63,16 @@ def test_main_large_integration(tmpdir, empty_training_data):
     main(args + ['--resume'])
 
 
+# noinspection DuplicatedCode
 def test_main_image_directory(tmpdir, empty_training_image_directory):
     neural_network = 'Unet(levels=2)'
 
     model_path = tmpdir.join('model')
 
-    images, labels = empty_training_image_directory + '/images/image-{}.png',\
-                     empty_training_image_directory + '/labels/label-{}.png'
+    images, labels = (
+                         empty_training_image_directory + '/images/image-{}.png',
+                         empty_training_image_directory + '/labels/label-{}.png'
+    )
 
     args = [
         '--NeuralNetwork', neural_network, '--model', str(model_path), empty_training_image_directory,
@@ -84,13 +87,16 @@ def test_main_image_directory(tmpdir, empty_training_image_directory):
     main(args + ['--resume'])
 
 
+# noinspection DuplicatedCode
 def test_main_image_directory_hvd_disable(tmpdir, empty_training_image_directory):
     neural_network = 'Unet(levels=2)'
 
     model_path = tmpdir.join('model')
 
-    images, labels = empty_training_image_directory + '/images/image-{}.png',\
-                     empty_training_image_directory + '/labels/label-{}.png'
+    images, labels = (
+                         empty_training_image_directory + '/images/image-{}.png',
+                         empty_training_image_directory + '/labels/label-{}.png'
+    )
 
     args = [
         '--NeuralNetwork', neural_network, '--model', str(model_path), empty_training_image_directory,

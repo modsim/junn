@@ -33,7 +33,6 @@ class ImageJTiffInput(TrainingInput, TrainingInput.Default):
             raise RuntimeError('Invalid mode passed')
 
 
-
 class ImageDirectoryInput(TrainingInput):
     def __init__(self, images='', labels='', normalize_labels=False):
         self.images, self.labels = images, labels

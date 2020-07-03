@@ -55,6 +55,7 @@ warn_unused_arguments = warn_unused_arguments
 
 try_load_tensorflow_addons()
 
+
 # noinspection PyMethodMayBeStatic
 class NeuralNetwork(Selectable):
     PREDICTION_SIGNATURE = 'predict'

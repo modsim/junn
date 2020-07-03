@@ -1,5 +1,5 @@
-#from junn.common.configure_tensorflow import configure_tensorflow
-#configure_tensorflow(0)  # very important to set allow_growth to True
+# from junn.common.configure_tensorflow import configure_tensorflow
+# configure_tensorflow(0)  # very important to set allow_growth to True
 
 import pytest
 

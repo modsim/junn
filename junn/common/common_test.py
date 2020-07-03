@@ -1,8 +1,8 @@
 import pytest
 
+
 def test_distributed():
     import junn.common.distributed
-
 
     def _inner():
         from junn.common.distributed import (
@@ -13,7 +13,7 @@ def test_distributed():
         assert rank() == 0
         assert is_rank_zero()
         assert size() == 1
-        assert is_running_distributed() == False
+        assert is_running_distributed() is False
         barrier('testing')
         assert True
 
@@ -61,7 +61,8 @@ def test_layer_runmodeltiled():
     from junn.common.layers.run_model_layer import RunModelTiled
     import numpy as np
 
-    fake_model = lambda a: a + 10
+    def fake_model(a):
+        return a + 10
 
     image = np.random.random((1, 512, 512, 1))
 
@@ -76,7 +77,8 @@ def test_layer_runmodeltiled_overlap():
     from junn.common.layers.run_model_layer import RunModelTiled
     import numpy as np
 
-    fake_model = lambda a: a + 10
+    def fake_model(a):
+        return a + 10
 
     image = np.random.random((1, 512, 512, 1))
 
