@@ -55,7 +55,7 @@ class MultichannelHandling(TilebasedNetwork):
         output_channels = self.parameters['output_channels'] if 'output_channels' in self.parameters else 1
 
         if output_channels > 1:
-            from ..common.losses import dice_loss_unclipped, dice_loss
+            from ...common.losses import dice_loss_unclipped, dice_loss
             return dice_loss  # dice_loss_unclipped
         else:
             return super().get_loss()
