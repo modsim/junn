@@ -3,11 +3,12 @@ from .mixins.multichannel import MultichannelHandling
 from .mixins.preprocessing import PerImageStandardizationPreprocessingMixin
 from .mixins.tile_based_network import TilebasedNetwork
 from .mixins.losses import DiceLoss
+from .mixins.weighted_loss import WeightedLoss
 
 from .functional.unet_layer import unet
 
 
-class Unet(MultichannelHandling, DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork):
+class Unet(WeightedLoss, MultichannelHandling, DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork):
     def get_model(self):
         parameters = dict(
             # defaults
