@@ -44,11 +44,6 @@ def dataset_from_tiff(file_name, mode='dynamic'):
         return image, labels
 
     @tf.function
-    def _remap_labels(image, labels):
-        labels = tf.where(labels == REGION_FOREGROUND, tf.cast(1, labels.dtype), tf.cast(0, labels.dtype))
-        return image, labels
-
-    @tf.function
     def _cast(image, labels):
         return tf.cast(image, tf.float32), tf.cast(labels, tf.float32)
 
@@ -57,7 +52,6 @@ def dataset_from_tiff(file_name, mode='dynamic'):
         dataset = dataset.map(_cast)
 
     dataset = dataset.map(_force_three_dim)
-    dataset = dataset.map(_remap_labels)
 
     return dataset
 
