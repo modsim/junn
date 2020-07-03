@@ -160,7 +160,7 @@ def main(args=None):
 
     ti = TrainingInput()
     log.info("Loading dataset %s(%r)", type(ti).__name__, args.input)
-    dynamic_dataset = ti.get(*args.input)
+    dynamic_dataset = ti.get(*args.input, mode=nn.input_mode)
 
     if not args.embed:
         dataset = dynamic_dataset

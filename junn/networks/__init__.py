@@ -26,9 +26,6 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 
-from tensorflow.keras.utils import get_custom_objects
-import tensorflow_addons.activations as tfa_activations
-
 from keras_nvidia_statistics import NvidiaDeviceStatistics
 
 from junn_predict.common.tensorflow_addons import try_load_tensorflow_addons
@@ -67,6 +64,8 @@ class NeuralNetwork(Selectable):
     ASSET_HISTORY = ASSET_PREFIX + 'keras_history.json'
     ASSET_TUNABLES = ASSET_PREFIX + 'tunables.json'
     ASSET_ARGUMENTS = ASSET_PREFIX + 'arguments.json'
+
+    input_mode = None
 
     def __init__(self, **kwargs):
         self.log = logging.getLogger(__name__)
