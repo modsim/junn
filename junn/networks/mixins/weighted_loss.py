@@ -46,7 +46,7 @@ class WeightedLoss(TilebasedNetwork):
         weighted_loss = self.parameters['weighted_loss'] if 'weighted_loss' in self.parameters else False
 
         if weighted_loss:
-            from ..common.losses import dice_index_weighted
+            from ...common.losses import dice_index_weighted
 
             @tf.function
             def _inner(raw_y_true, y_pred):
