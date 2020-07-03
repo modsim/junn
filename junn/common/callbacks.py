@@ -8,11 +8,6 @@ from junn_predict.common.timed import Timed
 from ..io.tiffmasks import tiff_masks
 
 
-class TimeLogCallback(Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        logs['wallclock'] = float(time.time())
-
-
 class TensorBoardSegmentationCallback(Callback):
     """
     The callback will run the model on a set of test images to produce test predictions (e.g. segmentations) observable

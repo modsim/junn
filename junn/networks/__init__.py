@@ -1,4 +1,5 @@
 import os
+import time
 import logging
 import tempfile
 import tensorflow as tf
@@ -12,7 +13,7 @@ import jsonpickle.ext.numpy as jsonpickle_numpy
 
 import tensorflow.python.util.deprecation as deprecation
 
-from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import TensorBoard, LambdaCallback
 
 # noinspection PyPep8Naming
 from tensorflow.keras import backend as K
@@ -39,9 +40,7 @@ from ..train import (
     Profile, TensorBoardSegmentationDataset, TensorBoardSegmentationEpochs
 )
 
-from ..common.callbacks import (
-    TensorBoardSegmentationCallback, TimeLogCallback,  # TensorBoard
-)
+from ..common.callbacks import TensorBoardSegmentationCallback
 
 from ..common.functions import tf_function_nop, tf_function_one_arg_nop
 
@@ -283,7 +282,19 @@ class NeuralNetwork(Selectable):
         # now add callbacks which are only for rank zero
 
         the_callbacks.append(NvidiaDeviceStatistics(output=self.log.info))
-        the_callbacks.append(TimeLogCallback())
+
+        the_callbacks.append(LambdaCallback(
+            on_epoch_end=lambda epoch, logs: logs.update(dict(wallclock=float(time.time())))
+        ))
+
+        stats = self._statistics_about_weights
+
+        the_callbacks.append(LambdaCallback(
+            on_epoch_end=lambda epoch, logs: logs.update(dict(
+                parameter_count_trainable=stats['trainable'],
+                parameter_count_non_trainable=stats['non_trainable']
+            ))
+        ))
 
         the_callbacks.append(TQDMProgressBar())
 
