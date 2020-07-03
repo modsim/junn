@@ -1,8 +1,17 @@
 from tensorflow.keras.callbacks import Callback
+import time
 import numpy as np
 from tifffile import imread as tifffile_imread
 
 import tensorflow as tf
+
+from junn_predict.common.timed import Timed
+from ..io.tiffmasks import tiff_masks
+
+
+class TimeLogCallback(Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        logs['wallclock'] = float(time.time())
 
 
 class TensorBoardSegmentationCallback(Callback):
@@ -10,7 +19,7 @@ class TensorBoardSegmentationCallback(Callback):
     The callback will run the model on a set of test images to produce test predictions (e.g. segmentations) observable
     via TensorBoard.
     """
-    def __init__(self, tensorboard_callback, prediction_callback, input_file_name=None, every_epoch=1):
+    def __init__(self, tensorboard_callback, prediction_callback, input_file_name=None, every_epoch=1, metrics=None):
         """
         Constructor.
         :param tensorboard_callback:
@@ -26,19 +35,14 @@ class TensorBoardSegmentationCallback(Callback):
 
         self.every_epoch = every_epoch
 
-        self.input_images = self._prepare_input_data(input_file_name)
+        self.input_images_masks = list(tiff_masks(input_file_name,
+                                                  background=0.0,
+                                                  foreground=1.0,
+                                                  border=0.0,
+                                                  ))
 
-    @staticmethod
-    def _prepare_input_data(input_file_name):
-        tiff_data = tifffile_imread(input_file_name)
-        if tiff_data.ndim == 3:
-            if tiff_data.shape[2] == 3:
-                # maybe RGB
-                return [tiff_data]
-            else:
-                return [plane[..., np.newaxis] for plane in tiff_data]
-        elif tiff_data.ndim == 2:
-            return [tiff_data[..., np.newaxis]]
+        self.metrics = metrics if metrics else []
+
 
     @staticmethod
     def _prepare_result(result):
@@ -56,7 +60,7 @@ class TensorBoardSegmentationCallback(Callback):
         :param logs:
         :return:
         """
-        if self.input_images is None:
+        if not self.input_images_masks:
             return
 
         if (epoch % self.every_epoch) != 0:
@@ -64,10 +68,24 @@ class TensorBoardSegmentationCallback(Callback):
 
         # noinspection PyProtectedMember
         with self.tb._get_writer(self.tb._train_run_name).as_default():
-            segmentation_str = "segmentation_%%0%dd" % len(str(len(self.input_images)))
-            for n, image in enumerate(self.input_images):
-                result = self.prediction_callback(image.astype(np.float32))
+            segmentation_str = "segmentation_%%0%dd" % len(str(len(self.input_images_masks)))
+            for n, (image, mask) in enumerate(self.input_images_masks):
 
-                result = self._prepare_result(result)
+                segmentation_name = segmentation_str % n
 
-                tf.summary.image(segmentation_str % n, result, step=epoch)
+                image = image[..., np.newaxis].astype(np.float32)
+                mask = mask[..., np.newaxis].astype(np.float32)
+
+                with Timed() as runtime:
+                    raw_result = np.array(self.prediction_callback(image))
+
+                pixels_per_second = image.size / float(runtime)
+
+                result = self._prepare_result(raw_result)
+
+                tf.summary.image(segmentation_name, result, step=epoch)
+
+                logs['%s_%s' % (segmentation_name, 'pixels_per_second')] = pixels_per_second
+
+                for metric in self.metrics:
+                    logs['%s_%s' % (segmentation_name, metric.__name__)] = float(metric(mask, raw_result))

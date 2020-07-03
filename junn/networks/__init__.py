@@ -16,6 +16,7 @@ from tensorflow.keras.callbacks import TensorBoard
 
 # noinspection PyPep8Naming
 from tensorflow.keras import backend as K
+from tensorflow_addons.callbacks import TQDMProgressBar
 
 from tunable import Selectable
 
@@ -42,7 +43,7 @@ from ..train import (
 )
 
 from ..common.callbacks import (
-    TensorBoardSegmentationCallback,  # TensorBoard
+    TensorBoardSegmentationCallback, TimeLogCallback,  # TensorBoard
 )
 
 from ..common.functions import tf_function_nop, tf_function_one_arg_nop
@@ -272,26 +273,24 @@ class NeuralNetwork(Selectable):
         raise RuntimeError("Not implemented.")
 
     def get_callbacks(self):
-
-        from tensorflow_addons.callbacks import TQDMProgressBar
-
         the_callbacks = distributed.get_callbacks()
 
-        if distributed.is_rank_zero():
-            the_callbacks.append(
-                NvidiaDeviceStatistics(output=self.log.info)
-            )
+        # all callbacks which are for _all_ workers must go here
 
-            the_callbacks.append(
-                TQDMProgressBar()
-            )
+        if not distributed.is_rank_zero():
+            return the_callbacks
 
-        if distributed.is_rank_zero():
-            the_callbacks.append(
-                callbacks.ModelCheckpoint(self.model_path + '/cp.ckpt', save_weights_only=True, monitor='loss'),
-            )
+        # now add callbacks which are only for rank zero
 
-        #
+        the_callbacks.append(NvidiaDeviceStatistics(output=self.log.info))
+        the_callbacks.append(TimeLogCallback())
+
+        the_callbacks.append(TQDMProgressBar())
+
+        the_callbacks.append(
+            callbacks.ModelCheckpoint(self.model_path + '/cp.ckpt', save_weights_only=True, monitor='loss'),
+        )
+
         tensorboard_callback = TensorBoard(
             log_dir=self.model_path,
             profile_batch=Profile.value,
@@ -300,19 +299,19 @@ class NeuralNetwork(Selectable):
             write_images=False
         )
 
-        if distributed.is_rank_zero():
-            the_callbacks.append(tensorboard_callback)
-
         if TensorBoardSegmentationDataset.value:
             tbsc = TensorBoardSegmentationCallback(
                 tensorboard_callback,
                 prediction_callback=lambda image: self.predict(image),
                 input_file_name=TensorBoardSegmentationDataset.value,
-                every_epoch=TensorBoardSegmentationEpochs.value
+                every_epoch=TensorBoardSegmentationEpochs.value,
+                metrics=Metrics.get_list()
             )
 
-            if distributed.is_rank_zero():
-                the_callbacks.append(tbsc)
+            the_callbacks.append(tbsc)
+
+        # must be last to have access to all log items
+        the_callbacks.append(tensorboard_callback)
 
         return the_callbacks
 
