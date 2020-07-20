@@ -3,6 +3,7 @@ import logging
 import os
 
 from .detectors import ROIDetector
+from ..common import LazyContextManager
 from ..common.timed import Timed
 
 from urllib.parse import urlparse, urlunparse
@@ -177,7 +178,7 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
         output_filename = overall_output_filename.format(position=position_number_format_str % position)
         log.info("Writing position %d to \"%s\" ...", position, output_filename)
 
-        with TiffWriter(output_filename, imagej=True) as tiff_output:
+        with LazyContextManager(TiffWriter, output_filename, imagej=True) as tiff_output:
             output_timepoint = -1
             image_buffer = []
             roi_buffer = []
