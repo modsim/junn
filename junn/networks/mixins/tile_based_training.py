@@ -41,6 +41,7 @@ class TilebasedTrainingMixin:
                 return tf.random.uniform(shape=[], minval=minval, maxval=maxval, dtype=tf.float32, seed=seed)
 
             # blur
+            # this could be done with tfa.image.gaussian_filter2d, but in first tests, it was slower
             if random_float(seed=20) < BlurProbability.value:
                 gaussian_kernel_n = tf.random.uniform(
                     shape=[], minval=0, maxval=len(gaussian_kernels), dtype=tf.int32, seed=21)
