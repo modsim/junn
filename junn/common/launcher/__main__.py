@@ -7,6 +7,8 @@ import os.path as osp
 # noinspection PyProtectedMember
 from runpy import _run_module_as_main
 
+from junn_predict.common.configure_tensorflow import get_gpu_memory_usages_megabytes
+
 base_name = 'junn'
 memory_usage_warning_threshold = 0.9
 
@@ -40,33 +42,12 @@ def print_possible_commands():
         print('%s %s' % (base_name, module,))
 
 
-def get_gpu_memory_usages():
-    try:
-        import py3nvml.py3nvml as nvml
-    except ImportError:
-        return [0.0]
-
-    # noinspection PyUnresolvedReferences
-    try:
-        nvml.nvmlInit()
-    except nvml.NVMLError_LibraryNotFound:
-        return [0.0]
-
-    device_count = nvml.nvmlDeviceGetCount()
-
-    devices = list(range(device_count))
-    device_handles = [nvml.nvmlDeviceGetHandleByIndex(device) for device in devices]
-
-    memory_infos = [nvml.nvmlDeviceGetMemoryInfo(handle) for device, handle in zip(devices, device_handles)]
-    memory_usages = [float(memory_info.used / memory_info.total) for memory_info in memory_infos]
-
-    nvml.nvmlShutdown()
-
-    return memory_usages
+def get_gpu_memory_usage_fractions():
+    return [used/total if total else 0.0 for used, total in get_gpu_memory_usages_megabytes()]
 
 
-def get_mean_gpu_memory_usage():
-    memory_usages = get_gpu_memory_usages()
+def get_mean_gpu_memory_usage_fraction():
+    memory_usages = get_gpu_memory_usage_fractions()
     return sum(memory_usages) / len(memory_usages)
 
 
@@ -90,7 +71,7 @@ def main():
         os.environ['CUDA_VISIBLE_DEVICES'] = ''
         del sys.argv[0]
 
-    if 'CUDA_VISIBLE_DEVICES' not in os.environ and get_mean_gpu_memory_usage() > memory_usage_warning_threshold:
+    if 'CUDA_VISIBLE_DEVICES' not in os.environ and get_mean_gpu_memory_usage_fraction() > memory_usage_warning_threshold:
         print("More than %.2f%% of GPU memory used, likely some other process is still using the GPU!" %
               (memory_usage_warning_threshold * 100.0))
 

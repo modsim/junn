@@ -2,11 +2,8 @@
 # with disable_cuda():
 #     import tensorflow as tf
 
-from junn.common.configure_tensorflow import configure_tensorflow
+from junn_predict.common.configure_tensorflow import configure_tensorflow
 configure_tensorflow(0)
-
-
-import tensorflow as tf
 
 # tf.config.experimental_run_functions_eagerly(True)
 

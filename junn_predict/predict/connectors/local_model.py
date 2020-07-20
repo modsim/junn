@@ -1,5 +1,6 @@
 from .model_connector import ModelConnector
 from ...common.tensorflow_addons import try_load_tensorflow_addons
+from ...common.configure_tensorflow import configure_tensorflow
 
 
 class LocalModel(ModelConnector, ModelConnector.Default):
@@ -9,6 +10,9 @@ class LocalModel(ModelConnector, ModelConnector.Default):
 
     def __init__(self, arg):
         super().__init__(arg)
+
+        configure_tensorflow(seed=0)
+
         import tensorflow as tf
 
         try_load_tensorflow_addons()

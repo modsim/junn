@@ -3,12 +3,7 @@ import tqdm
 # from ..common.stderr_redirection import StdErrLogRedirector
 # StdErrLogRedirector.start_redirect()
 
-from ..common.configure_tensorflow import configure_tensorflow
-configure_tensorflow(seed=0)
-
-from ..common.seeding import set_seed
-set_seed(0)
-
+from junn_predict.common import autoconfigure_tensorflow
 import os
 import sys
 import logging
@@ -33,7 +28,10 @@ from ..datasets.tfrecord import create_example, read_junn_tfrecord
 from ..io.training import TrainingInput
 
 from ..networks import NeuralNetwork
-from ..networks.all import *
+from ..networks.all import __networks__
+
+autoconfigure_tensorflow = autoconfigure_tensorflow
+__networks__ = __networks__
 
 TRAINING_DATA_DIR = 'training_data'
 # TRAINING_DATA_METADATA = 'metadata.json'
