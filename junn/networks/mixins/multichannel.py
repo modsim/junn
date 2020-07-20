@@ -4,7 +4,7 @@ from ...io import REGION_FOREGROUND
 from .tile_based_network import TilebasedNetwork
 
 
-class MultichannelHandling(TilebasedNetwork):
+class MultichannelHandling(TilebasedNetwork, TilebasedNetwork.Virtual):
     def get_training_fn(self, validation: bool = False):
         parent_fn = super().get_training_fn(validation=validation)
 

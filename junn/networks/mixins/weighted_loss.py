@@ -21,7 +21,7 @@ def split_weight_off(raw_y_true, y_pred):
     return y_true, y_pred, y_weight
 
 
-class WeightedLoss(TilebasedNetwork):
+class WeightedLoss(TilebasedNetwork,TilebasedNetwork.Virtual):
     def get_training_fn(self, validation: bool = False):
         parent_fn = super().get_training_fn(validation=validation)
 
