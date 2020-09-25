@@ -60,7 +60,7 @@ class TensorBoardSegmentationCallback(Callback):
             return
 
         # noinspection PyProtectedMember
-        with self.tb._get_writer(self.tb._train_run_name).as_default():
+        with self.tb._train_writer.as_default():
             segmentation_str = "segmentation_%%0%dd" % len(str(len(self.input_images_masks)))
             for n, (image, mask) in enumerate(self.input_images_masks):
 
