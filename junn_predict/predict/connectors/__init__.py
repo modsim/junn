@@ -25,6 +25,8 @@ schema_model_mapping = {
     'file': LocalModel,
     'grpc': GRPCConnector,
     'grpcs': GRPCConnector,
-    'http': HTTPConnector,
-    'https': HTTPConnector
+    'tfs+http': HTTPConnector,
+    'tfs+https': HTTPConnector,
+    'http': LocalModel,
+    'https': LocalModel,
 }

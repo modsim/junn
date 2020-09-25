@@ -17,7 +17,12 @@ class LocalModel(ModelConnector, ModelConnector.Default):
 
         try_load_tensorflow_addons()
 
-        self.model = tf.saved_model.load(arg)
+        if arg.startswith('http://') or arg.startswith('https://'):
+            import tensorflow_hub as hub
+
+            self.model = hub.load(arg)
+        else:
+            self.model = tf.saved_model.load(arg)
 
     def get_signatures(self):
         return list(sorted(self.model.signatures.keys()))

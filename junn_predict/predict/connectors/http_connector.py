@@ -41,6 +41,10 @@ class HTTPConnector(ModelConnector):
             # noinspection PyProtectedMember
             url_fragments = url_fragments._replace(scheme='http')
 
+        if 'tfs+' in url_fragments.scheme:
+            # noinspection PyProtectedMember
+            url_fragments = url_fragments._replace(scheme=url_fragments.scheme.replace('tfs+', ''))
+
         path_fragments = url_fragments.path.split('/')
 
         assert_pop(path_fragments, '')

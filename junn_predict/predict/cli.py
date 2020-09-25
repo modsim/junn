@@ -128,7 +128,8 @@ def main(args=None):
     if args.model is None:
         raise RuntimeError('Please specify a model/connector argument.')
 
-    mc = ModelConnector(args.model)
+    #mc = ModelConnector(args.model)
+    mc = suggested_connector(args.model)
     signature = 'predict' if not isinstance(mc, HTTPConnector) else 'predict_png'
 
     def predict(input_data):
