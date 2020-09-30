@@ -62,10 +62,12 @@ def prepare_inputs_outputs(args):
 
             # noinspection PyProtectedMember
             inputs = [
-                urlunparse(result._replace(path=fragment))
-                for fragment in glob.glob(os.path.expanduser(os.path.expandvars(result.path)))
+                urlunparse(result._replace(path=fragment, fragment=''))
+                for fragment in glob.glob(os.path.expanduser(os.path.expandvars(
+                    result.path + ('#' + result.fragment if result.fragment else '')
+                )))
             ]
-            
+
     outputs = []
 
     for input_filename in inputs:
