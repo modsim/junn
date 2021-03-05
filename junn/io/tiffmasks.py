@@ -18,16 +18,20 @@ def _inner_tiff_peek(tiff):
 
     imagej_metadata = tiff.imagej_metadata
 
-    try:
-        count = imagej_metadata['images']
-    except KeyError:
-        count = 1
+    if imagej_metadata:
 
-    try:
-        if imagej_metadata['frames'] < count:
-            count = imagej_metadata['frames']
-    except KeyError:
-        pass
+        try:
+            count = imagej_metadata['images']
+        except KeyError:
+            count = 1
+
+        try:
+            if imagej_metadata['frames'] < count:
+                count = imagej_metadata['frames']
+        except KeyError:
+            pass
+    else:
+        count = 1
 
     return TiffInfo(pages=count, h=first_page.imagelength, w=first_page.imagewidth, c=1, dtype=first_page.dtype)
 
@@ -105,7 +109,10 @@ def tiff_masks(file_name,
 
         array = tiff_to_array(tiff)
 
-        overlays = _get_overlays(tiff.imagej_metadata['Overlays'])
+        if tiff.imagej_metadata:
+            overlays = _get_overlays(tiff.imagej_metadata['Overlays'])
+        else:
+            overlays = {}
 
         buffer_prototype = np.empty((tiff_info.h, tiff_info.w), dtype=np.uint8)
         buffer_prototype.fill(background)
