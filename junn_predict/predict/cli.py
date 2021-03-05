@@ -149,6 +149,94 @@ def main(args=None):
         predict_file_name_with_args(args, input_filename, output_filename, predict)
 
 
+class OutputWriter:
+    calibration = 1.0
+    name = ''
+
+    progress = lambda _: _
+
+    def __init__(self, name, calibration=1.0):
+        self.name = name
+        self.calibration = calibration
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._finish()
+
+    def _finish(self):
+        pass
+
+    def add_roi(self, roi):
+        pass
+
+    def add_frame(self, data):
+        pass
+
+
+class TiffOutputWriter(OutputWriter):
+    BACKING_MEMORY = 1
+    BACKING_FILE = 2
+
+    backing = BACKING_MEMORY
+
+    def __init__(self, name, calibration=1.0):
+        super().__init__(name, calibration=calibration)
+        import tifffile  # fail early if it is not installed
+        tifffile = tifffile
+        self.buffer = []
+        self.roi_buffer = []
+
+    def add_roi(self, roi):
+        self.roi_buffer.append(roi)
+
+    def add_frame(self, data):
+        print(data.shape)
+        if self.backing == self.BACKING_MEMORY:
+            self.buffer.append(data)
+        else:
+            raise NotImplementedError
+
+    def _finish(self):
+        roi_byte_buffer = [roi.tobytes() for roi in self.roi_buffer]
+        from tifffile import TiffWriter
+
+        with TiffWriter(self.name, imagej=True) as tiff_output:
+            for frame in self.progress(self.buffer):
+                tiff_output.save(
+                    frame,
+                    resolution=(1.0 / self.calibration, 1.0 / self.calibration),
+                    metadata=dict(unit='um', Overlays=roi_byte_buffer)
+                )
+
+
+class ROIZIPWriter(OutputWriter):
+    def __init__(self, name, calibration=1.0):
+        super().__init__(name, calibration=calibration)
+        self.roi_buffer = []
+
+    def add_roi(self, roi):
+        self.roi_buffer.append(roi)
+
+    def _finish(self):
+        import zipfile
+
+        with zipfile.ZipFile(self.name, 'w', compresslevel=0) as zip_fh:
+            for roi in self.roi_buffer:
+                with zip_fh.open(roi.name + '.roi', 'w') as roi_fh:
+                    roi_fh.write(roi.tobytes())
+
+
+def suggest_output_writer_from_filename(filename):
+    if filename.endswith('.zip'):
+        return ROIZIPWriter
+    elif filename.endswith('.tif') or filename.endswith('.tiff'):
+        return TiffOutputWriter
+    else:
+        return TiffOutputWriter
+
+
 def predict_file_name_with_args(args, input_filename, output_filename, predict):
 
     log.info("Opening \"%s\" ...", input_filename)
@@ -177,17 +265,21 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
     output_type = args.output_type
 
     for n_p, position in tqdm.tqdm(enumerate(positions)):
+        temporary_input_frame = ims[position, timepoints[0], channel]
+        input_frame_pixels = np.prod(temporary_input_frame.shape)
+        # assumption: the file uses only one calibration
+        calibration = ims.meta[position, timepoints[0], channel].calibration
 
         output_filename = overall_output_filename.format(position=position_number_format_str % position)
         log.info("Writing position %d to \"%s\" ...", position, output_filename)
 
-        with LazyContextManager(TiffWriter, output_filename, imagej=True) as tiff_output:
-            output_timepoint = -1
-            image_buffer = []
-            roi_buffer = []
+        output_writer_class = suggest_output_writer_from_filename(output_filename)
+        output_writer_class.progress = tqdm.tqdm
 
-            temporary_input_frame = ims[position, timepoints[0], channel]
-            input_frame_pixels = np.prod(temporary_input_frame.shape)
+        roi_index = 0
+
+        with output_writer_class(name=output_filename, calibration=calibration) as output_writer:
+            output_timepoint = -1
 
             for n_t, timepoint in tqdm.tqdm(
                     enumerate(timepoints), total=len(timepoints), unit_scale=input_frame_pixels, unit=' pixels'):
@@ -197,8 +289,6 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
                 with Timed() as time_io_read:
 
                     input_frame = ims[position, timepoint, channel]
-                    calibration = ims.meta[position, timepoint, channel].calibration
-
                     input_data_for_prediction = input_frame[:, :, None].astype(np.float32)
 
                 with Timed() as time_prediction:
@@ -224,8 +314,10 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
                                 position=output_timepoint
                             )
 
-                            roi = ImagejRoi.frompoints(contour, c=-1, **kwargs)
-                            roi_buffer.append(roi)
+                            roi = ImagejRoi.frompoints(contour, c=-1, index=roi_index, **kwargs)
+                            output_writer.add_roi(roi)
+
+                            roi_index += 1
 
                         all_channels = [ims[position, timepoint, inner_channel]
                                         for inner_channel
@@ -239,7 +331,7 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
 
                         output_frame = np.stack(all_channels)[np.newaxis]
 
-                        image_buffer.append(output_frame)
+                        output_writer.add_frame(output_frame)
                     else:
                         raise RuntimeError('Unsupported output_type')
 
@@ -248,12 +340,3 @@ def predict_file_name_with_args(args, input_filename, output_filename, predict):
                     "Prediction: %ss IO read: %ss IO write: %ss",
                     n_p + 1, len(positions), n_t + 1, len(timepoints),
                     time_prediction, time_io_read, time_io_write)
-
-            roi_buffer = [roi.tobytes() for roi in roi_buffer]
-
-            for frame in tqdm.tqdm(image_buffer):
-                tiff_output.save(
-                    frame,
-                    resolution=(1.0 / calibration, 1.0 / calibration), metadata=dict(unit='um'),
-                    ijmetadata=dict(Overlays=roi_buffer)
-                )
