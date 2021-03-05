@@ -55,11 +55,12 @@ def dataset_from_tiff(file_name, mode='dynamic'):
     return dataset
 
 
-def dataset_from_filenames(file_names, label_names):
+def dataset_from_filenames(file_names, label_names, filename_list=''):
     """
     Load a list of filenames as TensorFlow dataset (image, label).
     :param file_names:
     :param label_names:
+    :param filename_list:
     :return:
     """
     file_list = []
@@ -85,16 +86,59 @@ def dataset_from_filenames(file_names, label_names):
     image_pattern = prepare_for_regex(image_pattern, task='glob')
     labels_pattern = prepare_for_regex(labels_pattern, task='glob')
 
-    dataset = tf.data.Dataset.zip((
-        tf.data.Dataset.list_files(image_pattern, shuffle=False),
-        tf.data.Dataset.list_files(labels_pattern, shuffle=False)
-    ))
+    if filename_list:
+        filename_list = [single_file.strip() for single_file in open(filename_list).readlines()]
+
+        # this is more heuristically
+
+        if filename_list[0].endswith(image_pattern[-4:]):
+            filename_list = [single_file[:-4] for single_file in filename_list]
+        elif filename_list[0].endswith(labels_pattern[-4:]):
+            filename_list = [single_file[:-4] for single_file in filename_list]
+
+        image_list = [image_pattern.replace('*', single_file) for single_file in filename_list]
+
+        label_list = [labels_pattern.replace('*', single_file) for single_file in filename_list]
+
+        dataset = tf.data.Dataset.zip((
+            tf.data.Dataset.from_tensor_slices(image_list),
+            tf.data.Dataset.from_tensor_slices(label_list)
+        ))
+    else:
+        dataset = tf.data.Dataset.zip((
+            tf.data.Dataset.list_files(image_pattern, shuffle=False),
+            tf.data.Dataset.list_files(labels_pattern, shuffle=False)
+        ))
+
+    @tf.function
+    def _ends_tiff(name):
+        name = tf.strings.lower(name)
+        return tf.math.logical_or(
+            tf.equal(tf.strings.substr(name, -4, -1), ".tif"),
+            tf.equal(tf.strings.substr(name, -5, -1), ".tiff")
+        )
+
+    def _decode_tiff(name):
+        from tifffile import TiffFile
+        name = name.numpy().decode()
+        with TiffFile(name) as tiff:
+            image = tiff.asarray().astype(np.float32)
+            if image.ndim == 2:
+                image = image[:, :, np.newaxis]
+            return image
+
+    @tf.function
+    def _flexible_decode_image(name):
+        if _ends_tiff(name):
+            return tf.py_function(func=_decode_tiff, inp=[name], Tout=tf.float32)
+        else:
+            return tf.cast(tf.io.decode_image(tf.io.read_file(name), expand_animations=False), tf.float32)
 
     @tf.function
     def _load(image_file_, labels_file_):
-        image_data_ = tf.io.decode_image(tf.io.read_file(image_file_), expand_animations=False)
-        labels_data_ = tf.io.decode_image(tf.io.read_file(labels_file_), expand_animations=False)
-
+        tf.print("Loading", image_file_, labels_file_)
+        image_data_ = _flexible_decode_image(image_file_)
+        labels_data_ = _flexible_decode_image(labels_file_)
         return image_data_, labels_data_
 
     dataset = dataset.map(_load)
