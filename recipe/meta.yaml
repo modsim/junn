@@ -14,20 +14,19 @@ source:
 
 build:
   number: 0
-  script: BUILD_PACKAGE=junn {{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv
+  script: {{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv
   noarch: python
 
 requirements:
   build:
-    - python >=3.5
+    - python =3.8
     - pip
+    - flit-core
   run:
-    - python >=3.5
+    - python =3.8
     - numpy
     - scipy
     - scikit-image
-#    - tensorflow-gpu >=2.1
-#    #- tensorflow-addons
     - jsonpickle
     - roifile
     - tifffile
