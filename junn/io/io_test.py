@@ -1,4 +1,4 @@
-from junn.io.tiffmasks import tiff_masks, tiff_peek, REGION_FOREGROUND
+from junn.io.tiffmasks import REGION_FOREGROUND, tiff_masks, tiff_peek
 
 
 def test_tiff_masks(empty_training_data):

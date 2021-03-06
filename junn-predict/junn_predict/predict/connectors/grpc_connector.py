@@ -12,11 +12,12 @@ class GRPCConnector(ModelConnector):
         super().__init__(arg)
         # warmup
         import grpc
+
         # noinspection PyUnresolvedReferences
         import tensorflow as tf  # tf serving needs tf ... which is a HUGE dependency
+
         # noinspection PyUnresolvedReferences
         import tensorflow_serving.apis
-
         from tensorflow_serving.apis import prediction_service_pb2_grpc
 
         assert name != '', "Name must be specified"
@@ -24,8 +25,10 @@ class GRPCConnector(ModelConnector):
         self.timeout = 60.0
         maximum_message_length = 100 * 1024 * 1024
 
-        options = [('grpc.max_message_length', maximum_message_length),
-                   ('grpc.max_receive_message_length', maximum_message_length)]
+        options = [
+            ('grpc.max_message_length', maximum_message_length),
+            ('grpc.max_receive_message_length', maximum_message_length),
+        ]
 
         # TODO: support for secure channels?
         self.channel = grpc.insecure_channel(arg, options=options)
@@ -49,10 +52,13 @@ class GRPCConnector(ModelConnector):
 
         signatures_map = get_model_metadata_pb2.SignatureDefMap()
         signatures_map.ParseFromString(value)
-        signatures = list(sorted(
-            name
-            for name, signature_def in signatures_map.signature_def.items()
-            if name != '__saved_model_init_op'))
+        signatures = list(
+            sorted(
+                name
+                for name, signature_def in signatures_map.signature_def.items()
+                if name != '__saved_model_init_op'
+            )
+        )
 
         return signatures
 
@@ -64,9 +70,7 @@ class GRPCConnector(ModelConnector):
         request.model_spec.name = self.name
         request.model_spec.signature_name = signature
 
-        request.inputs['image'].CopyFrom(
-            tf.make_tensor_proto(data)
-        )
+        request.inputs['image'].CopyFrom(tf.make_tensor_proto(data))
 
         result = self.stub.Predict(request, self.timeout)
         tensor_proto = result.outputs['output_0']

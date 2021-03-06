@@ -1,50 +1,54 @@
-import os
-import time
 import logging
+import os
 import tempfile
-import tensorflow as tf
-
-from typing import Optional, Dict, Any
+import time
+from typing import Any, Dict, Optional
 
 import jsonpickle
 import jsonpickle.ext.numpy as jsonpickle_numpy
-
-# noinspection PyProtectedMember
-
+import tensorflow as tf
 import tensorflow.python.util.deprecation as deprecation
-
-from tensorflow.keras.callbacks import TensorBoard, LambdaCallback
+from junn_predict.common.tensorflow_addons import try_load_tensorflow_addons
+from keras_nvidia_statistics import NvidiaDeviceStatistics
 
 # noinspection PyPep8Naming
 from tensorflow.keras import backend as K
-from tensorflow_addons.callbacks import TQDMProgressBar
-
-from tunable import Selectable
-
-from tensorflow.keras import callbacks
-from tensorflow.keras import optimizers
-
+from tensorflow.keras import callbacks, optimizers
+from tensorflow.keras.callbacks import LambdaCallback, TensorBoard
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
-
-from keras_nvidia_statistics import NvidiaDeviceStatistics
-
-from junn_predict.common.tensorflow_addons import try_load_tensorflow_addons
-from .util import get_weight_counts, get_default_signature, format_size, numpy_to_scalar, warn_unused_arguments
-
-from ..train import (
-    Epochs, StepsPerEpoch,
-    Optimizer, LearningRate, Momentum, Decay,
-    ValidationSteps, Metrics, PreprocessingMapParallel,
-    TensorBoardHistogramFrequency, TensorBoardWriteGradients,
-    Profile, TensorBoardSegmentationDataset, TensorBoardSegmentationEpochs
-)
-
-from ..common.callbacks import TensorBoardSegmentationCallback
-
-from ..common.functions import tf_function_nop, tf_function_one_arg_nop
+from tensorflow_addons.callbacks import TQDMProgressBar
+from tunable import Selectable
 
 from ..common import distributed
+from ..common.callbacks import TensorBoardSegmentationCallback
+from ..common.functions import tf_function_nop, tf_function_one_arg_nop
+from ..train import (
+    Decay,
+    Epochs,
+    LearningRate,
+    Metrics,
+    Momentum,
+    Optimizer,
+    PreprocessingMapParallel,
+    Profile,
+    StepsPerEpoch,
+    TensorBoardHistogramFrequency,
+    TensorBoardSegmentationDataset,
+    TensorBoardSegmentationEpochs,
+    TensorBoardWriteGradients,
+    ValidationSteps,
+)
+from .util import (
+    format_size,
+    get_default_signature,
+    get_weight_counts,
+    numpy_to_scalar,
+    warn_unused_arguments,
+)
+
+# noinspection PyProtectedMember
+
 
 jsonpickle_numpy.register_handlers()
 
@@ -133,10 +137,19 @@ class NeuralNetwork(Selectable):
     def print_model_statistics(self):
         stats = self._statistics_about_weights
 
-        self.log.info("Network parameter count, trainable:     % 12d", stats['trainable'])
-        self.log.info("Network parameter count, non-trainable: % 12d", stats['non_trainable'])
-        self.log.info("Network parameter size:                 % 19s (type %s)", format_size(
-            (stats['trainable'] + stats['non_trainable']) * stats['float_size']), stats['float'])
+        self.log.info(
+            "Network parameter count, trainable:     % 12d", stats['trainable']
+        )
+        self.log.info(
+            "Network parameter count, non-trainable: % 12d", stats['non_trainable']
+        )
+        self.log.info(
+            "Network parameter size:                 % 19s (type %s)",
+            format_size(
+                (stats['trainable'] + stats['non_trainable']) * stats['float_size']
+            ),
+            stats['float'],
+        )
 
     def try_load(self, path):
         if not distributed.is_rank_zero():  # only rank zero may load ...
@@ -148,19 +161,29 @@ class NeuralNetwork(Selectable):
 
         # model = tf.saved_model.load(path)
 
-        if tf.saved_model.contains_saved_model(path) and os.path.isdir(path) and os.path.isfile(checkpoint_index):
+        if (
+            tf.saved_model.contains_saved_model(path)
+            and os.path.isdir(path)
+            and os.path.isfile(checkpoint_index)
+        ):
             # expect partial is necessary to prevent warnings due to assets not being used by the vanilla keras model
             self.model.load_weights(checkpoint).expect_partial()
             for asset in tf.io.gfile.listdir(asset_path):
-                self.update_asset(asset, tf.io.read_file(os.path.join(asset_path, asset)))
+                self.update_asset(
+                    asset, tf.io.read_file(os.path.join(asset_path, asset))
+                )
 
             # restore history
             history = jsonpickle.loads(self.get_asset(self.ASSET_HISTORY))
 
             try:
-                self.current_epoch = int(max(history['epoch'])) + 1  # the current one will be the /next/
+                self.current_epoch = (
+                    int(max(history['epoch'])) + 1
+                )  # the current one will be the /next/
             except ValueError:
-                self.log.warning("Tried to load existing saved model, but history data was apparently corrupted.")
+                self.log.warning(
+                    "Tried to load existing saved model, but history data was apparently corrupted."
+                )
                 self.current_epoch = 1
             self.history = history
         else:
@@ -199,16 +222,16 @@ class NeuralNetwork(Selectable):
                     epoch=self.history['epoch'] + history.epoch,
                     history={
                         k: self.history['history'][k] + list(map(numpy_to_scalar, v))
-                        for k, v
-                        in history.history.items()
-                    }
+                        for k, v in history.history.items()
+                    },
                 )
             else:
                 mini_history = dict(
                     epoch=history.epoch,
                     history={
-                        k: list(map(numpy_to_scalar, v)) for k, v in history.history.items()
-                    }
+                        k: list(map(numpy_to_scalar, v))
+                        for k, v in history.history.items()
+                    },
                 )
 
             self.update_asset(self.ASSET_HISTORY, jsonpickle.dumps(mini_history))
@@ -226,11 +249,17 @@ class NeuralNetwork(Selectable):
 
         if export_tflite:
             # does not work (yet)
-            functions = [fun.get_concrete_function() for fun in self.signatures.values()]
+            functions = [
+                fun.get_concrete_function() for fun in self.signatures.values()
+            ]
             # so, only the default
-            functions = [self.signatures[self.signature_default_key].get_concrete_function()]
+            functions = [
+                self.signatures[self.signature_default_key].get_concrete_function()
+            ]
 
-            tflite_converter = tf.lite.TFLiteConverter.from_concrete_functions(functions)
+            tflite_converter = tf.lite.TFLiteConverter.from_concrete_functions(
+                functions
+            )
 
             tflite_converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
             # tf.lite.Optimize.OPTIMIZE_FOR_SIZE, tf.lite.Optimize.OPTIMIZE_FOR_LATENCY
@@ -252,8 +281,10 @@ class NeuralNetwork(Selectable):
         return distributed.wrap_optimizer(
             dict(
                 adam=lambda: optimizers.Adam(lr=lr, decay=Decay.value),
-                sgd=lambda: optimizers.SGD(lr=lr, momentum=Momentum.value, decay=Decay.value),
-                rmsprop=lambda: optimizers.RMSprop(lr=lr, decay=Decay.value)
+                sgd=lambda: optimizers.SGD(
+                    lr=lr, momentum=Momentum.value, decay=Decay.value
+                ),
+                rmsprop=lambda: optimizers.RMSprop(lr=lr, decay=Decay.value),
             )[Optimizer.value.lower()]()
         )
 
@@ -283,23 +314,33 @@ class NeuralNetwork(Selectable):
 
         the_callbacks.append(NvidiaDeviceStatistics(output=self.log.info))
 
-        the_callbacks.append(LambdaCallback(
-            on_epoch_end=lambda epoch, logs: logs.update(dict(wallclock=float(time.time())))
-        ))
+        the_callbacks.append(
+            LambdaCallback(
+                on_epoch_end=lambda epoch, logs: logs.update(
+                    dict(wallclock=float(time.time()))
+                )
+            )
+        )
 
         stats = self._statistics_about_weights
 
-        the_callbacks.append(LambdaCallback(
-            on_epoch_end=lambda epoch, logs: logs.update(dict(
-                parameter_count_trainable=stats['trainable'],
-                parameter_count_non_trainable=stats['non_trainable']
-            ))
-        ))
+        the_callbacks.append(
+            LambdaCallback(
+                on_epoch_end=lambda epoch, logs: logs.update(
+                    dict(
+                        parameter_count_trainable=stats['trainable'],
+                        parameter_count_non_trainable=stats['non_trainable'],
+                    )
+                )
+            )
+        )
 
         the_callbacks.append(TQDMProgressBar())
 
         the_callbacks.append(
-            callbacks.ModelCheckpoint(self.model_path + '/cp.ckpt', save_weights_only=True, monitor='loss'),
+            callbacks.ModelCheckpoint(
+                self.model_path + '/cp.ckpt', save_weights_only=True, monitor='loss'
+            ),
         )
 
         tensorboard_callback = TensorBoard(
@@ -307,7 +348,7 @@ class NeuralNetwork(Selectable):
             profile_batch=Profile.value,
             write_grads=TensorBoardWriteGradients.value,
             histogram_freq=TensorBoardHistogramFrequency.value,
-            write_images=False
+            write_images=False,
         )
 
         if TensorBoardSegmentationDataset.value:
@@ -316,7 +357,7 @@ class NeuralNetwork(Selectable):
                 prediction_callback=lambda image: self.predict(image),
                 input_file_name=TensorBoardSegmentationDataset.value,
                 every_epoch=TensorBoardSegmentationEpochs.value,
-                metrics=Metrics.get_list()
+                metrics=Metrics.get_list(),
             )
 
             the_callbacks.append(tbsc)
@@ -343,12 +384,14 @@ class NeuralNetwork(Selectable):
             verbose=False,
         )
 
-    def prepare_input(self,
-                      dataset,
-                      training: bool = True,
-                      validation: bool = False,
-                      skip_raw: bool = False,
-                      batch: int = None):
+    def prepare_input(
+        self,
+        dataset,
+        training: bool = True,
+        validation: bool = False,
+        skip_raw: bool = False,
+        batch: int = None,
+    ):
         if not skip_raw:
             dataset = self.apply_raw_fn(dataset)
 
@@ -374,23 +417,31 @@ class NeuralNetwork(Selectable):
             result = (fun(args[0]),) + args[1:]
             return result
 
-        return dataset.map(only_x)  # , num_parallel_calls=PreprocessingMapParallel.prepared())
+        return dataset.map(
+            only_x
+        )  # , num_parallel_calls=PreprocessingMapParallel.prepared())
 
     # noinspection PyUnusedLocal
     def get_training_fn(self, validation: bool = False):
         return tf_function_nop
 
     def apply_training_fn(self, dataset: tf.data.Dataset, validation: bool = False):
-        return dataset.map(self.get_training_fn(validation=validation),
-                           num_parallel_calls=PreprocessingMapParallel.prepared())
+        return dataset.map(
+            self.get_training_fn(validation=validation),
+            num_parallel_calls=PreprocessingMapParallel.prepared(),
+        )
 
     # noinspection PyUnusedLocal
     def get_training_batch_fn(self, validation: bool = False):
         return tf_function_nop
 
-    def apply_training_batch_fn(self, dataset: tf.data.Dataset, validation: bool = False):
-        return dataset.map(self.get_training_batch_fn(validation=validation),
-                           num_parallel_calls=PreprocessingMapParallel.prepared())
+    def apply_training_batch_fn(
+        self, dataset: tf.data.Dataset, validation: bool = False
+    ):
+        return dataset.map(
+            self.get_training_batch_fn(validation=validation),
+            num_parallel_calls=PreprocessingMapParallel.prepared(),
+        )
 
     def get_signatures(self):
         return {}

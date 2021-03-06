@@ -1,10 +1,9 @@
-from junn.common.launcher.__main__ import main
+import sys
+from contextlib import contextmanager
 
 import pytest
 
-from contextlib import contextmanager
-
-import sys
+from junn.common.launcher.__main__ import main
 
 
 @contextmanager
@@ -21,6 +20,7 @@ def alter_sys_argv(new_sys_argv=None):
 
 def test_launcher():
     from importlib.machinery import SourceFileLoader
+
     with alter_sys_argv():
         SourceFileLoader('__main__', 'junn/common/launcher/__main__.py').load_module()
 

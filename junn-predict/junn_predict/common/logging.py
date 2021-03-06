@@ -1,14 +1,15 @@
 import logging
-
 import sys
-import tqdm
+
 import colorlog
+import tqdm
 
 
 class TqdmLoggingHandler(logging.StreamHandler):
     """
     TqdmLoggingHandler
     """
+
     def emit(self, record):
         message = self.format(record)
         tqdm.tqdm.write(message)
@@ -19,6 +20,7 @@ class DelayedFileLog(logging.StreamHandler):
     DelayedFileLog is a log handler which will cache log messages up to the point where the desired log
     filename is set using setFilename, at which
     """
+
     def __init__(self):
         super().__init__()
 
@@ -48,20 +50,21 @@ def setup_logging(level):
         level = name_to_log_level[level]
 
     tqdm_log_handler = TqdmLoggingHandler()
-    log_format = "%(asctime)-15s.%(msecs)03d %(process)d %(levelname)s %(name)s %(message)s"
+    log_format = (
+        "%(asctime)-15s.%(msecs)03d %(process)d %(levelname)s %(name)s %(message)s"
+    )
     log_datefmt = '%Y-%m-%d %H:%M:%S'
     tqdm_log_handler.setFormatter(
-        colorlog.TTYColoredFormatter(fmt='%(log_color)s' + log_format, datefmt=log_datefmt, stream=sys.stdout)
+        colorlog.TTYColoredFormatter(
+            fmt='%(log_color)s' + log_format, datefmt=log_datefmt, stream=sys.stdout
+        )
     )
     buffer = DelayedFileLog()
-    log_handlers = [
-        tqdm_log_handler,
-        buffer
-    ]
+    log_handlers = [tqdm_log_handler, buffer]
     # noinspection PyArgumentList
-    logging.basicConfig(level=level, format=log_format,
-                        datefmt=log_datefmt,
-                        handlers=log_handlers)
+    logging.basicConfig(
+        level=level, format=log_format, datefmt=log_datefmt, handlers=log_handlers
+    )
 
 
 def get_name_to_log_level_dict():
@@ -71,6 +74,8 @@ def get_name_to_log_level_dict():
 
 
 def get_log_levels():
-    log_levels = [k for k, v in sorted(get_name_to_log_level_dict().items(), key=lambda ab: ab[1])]
+    log_levels = [
+        k for k, v in sorted(get_name_to_log_level_dict().items(), key=lambda ab: ab[1])
+    ]
     log_levels.remove('NOTSET')
     return log_levels

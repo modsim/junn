@@ -1,12 +1,11 @@
 from collections import namedtuple
 
-from . import REGION_BACKGROUND, REGION_BORDER, REGION_FOREGROUND
-
 import numpy as np
-
-from tifffile import TiffFile, TiffWriter
 from roifile import ImagejRoi
 from skimage.draw import polygon, polygon_perimeter
+from tifffile import TiffFile, TiffWriter
+
+from . import REGION_BACKGROUND, REGION_BORDER, REGION_FOREGROUND
 
 TiffWriter = TiffWriter
 
@@ -33,7 +32,13 @@ def _inner_tiff_peek(tiff):
     else:
         count = 1
 
-    return TiffInfo(pages=count, h=first_page.imagelength, w=first_page.imagewidth, c=1, dtype=first_page.dtype)
+    return TiffInfo(
+        pages=count,
+        h=first_page.imagelength,
+        w=first_page.imagewidth,
+        c=1,
+        dtype=first_page.dtype,
+    )
 
 
 def tiff_peek(file_name_or_tiff):
@@ -55,7 +60,11 @@ def tiff_peek(file_name_or_tiff):
 
 
 def guess_frame_identifier(all_overlays):
-    return 't_position' if (np.array([overlay.position for overlay in all_overlays]) == 0).all() else 'position'
+    return (
+        't_position'
+        if (np.array([overlay.position for overlay in all_overlays]) == 0).all()
+        else 'position'
+    )
 
 
 def _get_overlays(all_overlays):
@@ -77,18 +86,21 @@ def _get_overlays(all_overlays):
 
 
 def tiff_to_array(tiff):
-    array = tiff.asarray(out='memmap') if tiff.pages[0].is_memmappable else tiff.asarray()
+    array = (
+        tiff.asarray(out='memmap') if tiff.pages[0].is_memmappable else tiff.asarray()
+    )
     if array.ndim < 3:
         array = array[np.newaxis, ...]
     return array
 
 
-def tiff_masks(file_name,
-               background=REGION_BACKGROUND,
-               foreground=REGION_FOREGROUND,
-               border=REGION_BORDER,
-               skip_empty=False
-               ):
+def tiff_masks(
+    file_name,
+    background=REGION_BACKGROUND,
+    foreground=REGION_FOREGROUND,
+    border=REGION_BORDER,
+    skip_empty=False,
+):
     """
     Generator, reads a TIFF file with ImageJ ROIs, and yields tuples of image, mask per frame.
     :param file_name:
@@ -132,7 +144,9 @@ def tiff_masks(file_name,
                 continue
 
             if overlay_num in overlays:
-                draw_overlays(overlays[overlay_num], buffer, foreground=foreground, border=border)
+                draw_overlays(
+                    overlays[overlay_num], buffer, foreground=foreground, border=border
+                )
 
             yield array[num], buffer
 

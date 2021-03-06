@@ -1,6 +1,6 @@
-from .model_connector import ModelConnector
-from ...common.tensorflow_addons import try_load_tensorflow_addons
 from ...common.configure_tensorflow import configure_tensorflow
+from ...common.tensorflow_addons import try_load_tensorflow_addons
+from .model_connector import ModelConnector
 
 
 class LocalModel(ModelConnector, ModelConnector.Default):

@@ -1,11 +1,10 @@
 import tensorflow as tf
 
 from . import Input, Model, warn_unused_arguments
+from .functional.link_net import link_net
+from .mixins.losses import DiceLoss
 from .mixins.preprocessing import PerImageStandardizationPreprocessingMixin
 from .mixins.tile_based_network import TilebasedNetwork
-from .mixins.losses import DiceLoss
-
-from .functional.link_net import link_net
 
 
 class LinkNet(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork):
@@ -17,7 +16,13 @@ class LinkNet(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetw
 
         warn_unused_arguments(parameters, link_net, self.log)
 
-        self.log.info("Building a %s using parameters %r" % (self.__class__.__name__, parameters,))
+        self.log.info(
+            "Building a %s using parameters %r"
+            % (
+                self.__class__.__name__,
+                parameters,
+            )
+        )
 
         inputs = Input(self.tile_size)
 

@@ -1,11 +1,10 @@
 import tensorflow as tf
 
 from . import Input, Model, warn_unused_arguments
+from .functional.msd import msd_net
+from .mixins.losses import DiceLoss
 from .mixins.preprocessing import PerImageStandardizationPreprocessingMixin
 from .mixins.tile_based_network import TilebasedNetwork
-from .mixins.losses import DiceLoss
-
-from .functional.msd import msd_net
 
 
 class MSD(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork):
@@ -17,7 +16,13 @@ class MSD(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork)
 
         warn_unused_arguments(parameters, msd_net, self.log)
 
-        self.log.info("Building a %s using parameters %r" % (self.__class__.__name__, parameters,))
+        self.log.info(
+            "Building a %s using parameters %r"
+            % (
+                self.__class__.__name__,
+                parameters,
+            )
+        )
 
         inputs = Input(self.tile_size)
 

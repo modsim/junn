@@ -1,9 +1,13 @@
 import inspect
+
 from tensorflow.keras.backend import count_params
 from tensorflow.python.saved_model import signature_serialization
+
 # noinspection PyProtectedMember
 from tensorflow.python.saved_model.save import _AugmentedGraphView
-from tensorflow.python.saved_model.signature_constants import DEFAULT_SERVING_SIGNATURE_DEF_KEY
+from tensorflow.python.saved_model.signature_constants import (
+    DEFAULT_SERVING_SIGNATURE_DEF_KEY,
+)
 
 
 def get_weight_counts(model):
@@ -22,21 +26,14 @@ def get_weight_counts(model):
 
 
 def get_default_signature(model):
-    return \
-        DEFAULT_SERVING_SIGNATURE_DEF_KEY,\
-        signature_serialization.find_function_to_export(_AugmentedGraphView(model))
+    return (
+        DEFAULT_SERVING_SIGNATURE_DEF_KEY,
+        signature_serialization.find_function_to_export(_AugmentedGraphView(model)),
+    )
 
 
 def format_size(bytes_):
-    suffixes = [
-        'B',
-        'KiB',
-        'MiB',
-        'GiB',
-        'TiB',
-        'PiB',
-        'EiB'
-    ]
+    suffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
 
     index = 0
     start = 1
@@ -67,4 +64,8 @@ def get_keyword_arguments(func):
 def warn_unused_arguments(parameters, func, log):
     unused_arguments = set(parameters.keys()) - set(get_keyword_arguments(func))
     if unused_arguments != set():
-        log.warn("Unused arguments for call %s: %s", func.__name__, ', '.join(sorted(unused_arguments)))
+        log.warn(
+            "Unused arguments for call %s: %s",
+            func.__name__,
+            ', '.join(sorted(unused_arguments)),
+        )

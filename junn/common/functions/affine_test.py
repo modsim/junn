@@ -1,5 +1,9 @@
+import math
+
 import pytest
 import tensorflow as tf
+
+from junn.common.functions.affine import *
 
 # @pytest.fixture(autouse=True)
 # def run_eagerly():
@@ -9,12 +13,6 @@ import tensorflow as tf
 #     yield
 #     #tf.config.experimental_run_functions_eagerly(before)
 #     print("ran it.")
-
-
-from junn.common.functions.affine import *
-
-
-import math
 
 
 def test_radians():
@@ -39,23 +37,33 @@ def test_shape_to_h_w(tf_eager):
 
 
 def test_tfm_identity():
-    assert ([[1.0, 0.0, 0.0],
-             [0.0, 1.0, 0.0],
-             [0.0, 0.0, 1.0]] == tfm_identity()).numpy().all()
+    assert (
+        ([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]] == tfm_identity())
+        .numpy()
+        .all()
+    )
 
 
 def test_tfm_shift():
-    assert ([[1.0, 0.0, -5.0],
-             [0.0, 1.0, 0.0],
-             [0.0, 0.0, 1.0]] == tfm_shift(y=5)).numpy().all()
+    assert (
+        ([[1.0, 0.0, -5.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]] == tfm_shift(y=5))
+        .numpy()
+        .all()
+    )
 
-    assert ([[1.0, 0.0, 0.0],
-             [0.0, 1.0, -5.0],
-             [0.0, 0.0, 1.0]] == tfm_shift(x=5)).numpy().all()
+    assert (
+        ([[1.0, 0.0, 0.0], [0.0, 1.0, -5.0], [0.0, 0.0, 1.0]] == tfm_shift(x=5))
+        .numpy()
+        .all()
+    )
 
     assert (tfm_shift(x=5.0) @ tfm_shift(x=-5.0) == tfm_identity()).numpy().all()
     assert (tfm_shift(y=5.0) @ tfm_shift(y=-5.0) == tfm_identity()).numpy().all()
-    assert (tfm_shift(x=5.0, y=5.0) @ tfm_shift(x=-5.0, y=-5) == tfm_identity()).numpy().all()
+    assert (
+        (tfm_shift(x=5.0, y=5.0) @ tfm_shift(x=-5.0, y=-5) == tfm_identity())
+        .numpy()
+        .all()
+    )
 
 
 # noinspection DuplicatedCode
@@ -92,4 +100,11 @@ def test_tfm_shear(tf_eager):
 
 
 def test_tfm_to_tf_transform():
-    assert ([1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0] == tfm_to_tf_transform(tfm_identity())).numpy().all()
+    assert (
+        (
+            [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+            == tfm_to_tf_transform(tfm_identity())
+        )
+        .numpy()
+        .all()
+    )

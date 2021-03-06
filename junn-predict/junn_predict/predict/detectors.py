@@ -1,8 +1,7 @@
-from math import sqrt, atan
+from math import atan, sqrt
 
 import cv2
 import numpy as np
-
 from tunable import Selectable
 
 
@@ -22,8 +21,12 @@ class ROIDetector(Selectable):
         # the solution is to upscale the image by 2x and work with that ...
 
         scaling_factor = 2
-        repeated = np.repeat(np.repeat(image, scaling_factor, axis=0), scaling_factor, axis=1)
-        contours, hierarchy = cv2.findContours(repeated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        repeated = np.repeat(
+            np.repeat(image, scaling_factor, axis=0), scaling_factor, axis=1
+        )
+        contours, hierarchy = cv2.findContours(
+            repeated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+        )
 
         for contour in contours:
             # convert to float to allow for sub-pixel precision
@@ -62,18 +65,25 @@ class FilteringROIDetector(ROIDetector):
         width = min(side_a, side_b)
         length = max(side_a, side_b)
 
-        point_test = cv2.pointPolygonTest(contour, (center_x, center_y), measureDist=False)
+        point_test = cv2.pointPolygonTest(
+            contour, (center_x, center_y), measureDist=False
+        )
 
         solidity = cv2.contourArea(contour) / cv2.contourArea(cv2.convexHull(contour))
 
         # eccentricity
         try:
-            epsilon = ((m['mu20'] - m['mu02']) * (m['mu20'] - m['mu02']) - 4.0 * (m['mu11'] * m['mu11'])) / (
-                    (m['mu20'] + m['mu02']) * (m['mu20'] + m['mu02']))
+            epsilon = (
+                (m['mu20'] - m['mu02']) * (m['mu20'] - m['mu02'])
+                - 4.0 * (m['mu11'] * m['mu11'])
+            ) / ((m['mu20'] + m['mu02']) * (m['mu20'] + m['mu02']))
         except ZeroDivisionError:  # …
             epsilon = float('nan')
 
-        i_frag = sqrt(4.0 * m['mu11'] * m['mu11'] + (m['mu20'] - m['mu02']) * (m['mu20'] - m['mu02']))
+        i_frag = sqrt(
+            4.0 * m['mu11'] * m['mu11']
+            + (m['mu20'] - m['mu02']) * (m['mu20'] - m['mu02'])
+        )
         i_1 = 0.5 * ((m['mu20'] + m['mu02']) + i_frag)
         i_2 = 0.5 * ((m['mu20'] + m['mu02']) - i_frag)
         try:
@@ -117,7 +127,7 @@ class FilteringROIDetector(ROIDetector):
             theta=theta,
             spread=spread,
             elongation=elongation,
-            epsilon2=epsilon2
+            epsilon2=epsilon2,
         )
 
     @staticmethod
@@ -135,9 +145,12 @@ class FilteringROIDetector(ROIDetector):
         # debug = True
 
         if debug:
+
             def debug_out(msg):
                 print(msg, end='')
+
         else:
+
             def debug_out(msg):
                 pass
 
@@ -150,12 +163,14 @@ class FilteringROIDetector(ROIDetector):
             aspect=(0, 10),
             size=(0.25, 100),
             solidity=(0.75, 1.0),
-            epsilon=(-float('inf'), 0.8)
+            epsilon=(-float('inf'), 0.8),
         )
 
         for contour in super().get_rois(image):
             if filtering:
-                properties = self.calculate_properties(contour, calibration=self.calibration)
+                properties = self.calculate_properties(
+                    contour, calibration=self.calibration
+                )
                 mismatches = self.find_mismatches(properties, filter_dict)
                 if mismatches:
                     debug_out(''.join(mismatches))
@@ -167,6 +182,9 @@ class FilteringROIDetector(ROIDetector):
             if smoothing_window:
                 for _ in range(smoothing_times):
                     from scipy.ndimage import uniform_filter1d
-                    contour = uniform_filter1d(contour, smoothing_window, axis=0, mode='wrap')
+
+                    contour = uniform_filter1d(
+                        contour, smoothing_window, axis=0, mode='wrap'
+                    )
 
             yield contour

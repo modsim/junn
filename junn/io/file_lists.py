@@ -21,14 +21,20 @@ def generate_replacer(search, replace):
 
 def _prepare_for_regex_get_processor(task):
     if task == 'search':
+
         def process(_, split):
             return re.escape(split) + '(.*)'
+
     elif task == 'replace':
+
         def process(n, split):
             return split + '\\%d' % (n,)
+
     elif task == 'glob':
+
         def process(_, split):
             return split + '*'
+
     else:
         raise RuntimeError("Unsupported task.")
 
@@ -40,8 +46,10 @@ def prepare_for_regex(input_, task='search'):
 
     process = _prepare_for_regex_get_processor(task)
 
-    return ''.join(
-        process(n, split)
-        for n, split
-        in zip([n for n, _ in enumerate(splits)][1:], splits)
-    ) + splits[-1]
+    return (
+        ''.join(
+            process(n, split)
+            for n, split in zip([n for n, _ in enumerate(splits)][1:], splits)
+        )
+        + splits[-1]
+    )

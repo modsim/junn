@@ -3,7 +3,7 @@ from functools import reduce
 import tensorflow as tf
 from tunable import Selectable
 
-from ..datasets import dataset_from_tiff, dataset_from_filenames
+from ..datasets import dataset_from_filenames, dataset_from_tiff
 
 
 class TrainingInputMode:
@@ -26,7 +26,10 @@ class TrainingInput(Selectable):
 class ImageJTiffInput(TrainingInput, TrainingInput.Default):
     def get(self, *args, mode=ModeTile) -> tf.data.Dataset:
         if mode == ModeTile:
-            return reduce(lambda a, b: a.concatenate(b), [dataset_from_tiff(file_name) for file_name in args])
+            return reduce(
+                lambda a, b: a.concatenate(b),
+                [dataset_from_tiff(file_name) for file_name in args],
+            )
         elif mode == ModeBBox:
             raise NotImplementedError
         else:
@@ -34,8 +37,15 @@ class ImageJTiffInput(TrainingInput, TrainingInput.Default):
 
 
 class ImageDirectoryInput(TrainingInput):
-    def __init__(self, images='', labels='', filename_list='',
-                 normalize_labels=False, binarize_labels=False, remove_alpha=True):
+    def __init__(
+        self,
+        images='',
+        labels='',
+        filename_list='',
+        normalize_labels=False,
+        binarize_labels=False,
+        remove_alpha=True,
+    ):
         self.images, self.labels = images, labels
         self.filename_list = filename_list
         self.normalize_labels = normalize_labels
@@ -44,7 +54,9 @@ class ImageDirectoryInput(TrainingInput):
 
     def get(self, *args, mode=ModeTile) -> tf.data.Dataset:
         if mode == ModeTile:
-            dataset = dataset_from_filenames([self.images], [self.labels], filename_list=self.filename_list)
+            dataset = dataset_from_filenames(
+                [self.images], [self.labels], filename_list=self.filename_list
+            )
 
             @tf.function
             def _remove_alpha(x, y):
@@ -60,7 +72,7 @@ class ImageDirectoryInput(TrainingInput):
 
                 y = tf.reduce_mean(y, axis=-1)
                 y = y[..., tf.newaxis]
-                y = y/tf.reduce_max(y)
+                y = y / tf.reduce_max(y)
 
                 return x, y
 
@@ -71,7 +83,11 @@ class ImageDirectoryInput(TrainingInput):
             def _binarize_labels(x, y):
                 if tf.shape(y)[-1] > 1:
                     y = tf.reduce_max(y, axis=-1, keepdims=True)
-                    y = tf.where(tf.greater(y, 0), tf.cast(1.0, tf.float32), tf.cast(0.0, tf.float32))
+                    y = tf.where(
+                        tf.greater(y, 0),
+                        tf.cast(1.0, tf.float32),
+                        tf.cast(0.0, tf.float32),
+                    )
                 return x, y
 
             if self.binarize_labels:

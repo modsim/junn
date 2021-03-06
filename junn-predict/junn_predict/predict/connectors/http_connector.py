@@ -1,5 +1,4 @@
 import base64
-
 from io import BytesIO
 from urllib.parse import urlparse, urlunparse
 
@@ -28,8 +27,8 @@ def b64d(input_):
 class HTTPConnector(ModelConnector):
     @staticmethod
     def check_import():
-        import requests
         import numpy as np
+        import requests
         from PIL import Image
 
     def __init__(self, arg, name='', version=''):
@@ -43,7 +42,9 @@ class HTTPConnector(ModelConnector):
 
         if 'tfs+' in url_fragments.scheme:
             # noinspection PyProtectedMember
-            url_fragments = url_fragments._replace(scheme=url_fragments.scheme.replace('tfs+', ''))
+            url_fragments = url_fragments._replace(
+                scheme=url_fragments.scheme.replace('tfs+', '')
+            )
 
         path_fragments = url_fragments.path.split('/')
 
@@ -65,16 +66,9 @@ class HTTPConnector(ModelConnector):
         version = str(version)
 
         # noinspection PyProtectedMember
-        url_fragments = url_fragments._replace(path='/'.join(
-            [
-                '',
-                'v1',
-                'models',
-                name,
-                'versions',
-                version
-            ]
-        ))
+        url_fragments = url_fragments._replace(
+            path='/'.join(['', 'v1', 'models', name, 'versions', version])
+        )
 
         self.url = urlunparse(url_fragments)
 
@@ -84,16 +78,21 @@ class HTTPConnector(ModelConnector):
         result = requests.get(self.url + '/metadata')
         result_json = result.json()
 
-        signatures = list(sorted(
-            name
-            for name, signature_def in result_json['metadata']['signature_def']['signature_def'].items()
-            if name != '__saved_model_init_op'))
+        signatures = list(
+            sorted(
+                name
+                for name, signature_def in result_json['metadata']['signature_def'][
+                    'signature_def'
+                ].items()
+                if name != '__saved_model_init_op'
+            )
+        )
 
         return signatures
 
     def call(self, signature, data):
-        import requests
         import numpy as np
+        import requests
         from PIL import Image
 
         def _encode_png(image_data):
@@ -113,10 +112,7 @@ class HTTPConnector(ModelConnector):
         else:
             inputs = {'b64': b64(_encode_png(data))}
 
-        data = {
-            'signature_name': signature,
-            'inputs': inputs
-        }
+        data = {'signature_name': signature, 'inputs': inputs}
 
         result = requests.post(self.url + ':predict', json=data)
 

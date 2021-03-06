@@ -28,7 +28,9 @@ class PredictionSignatureMixin:
 
             prediction = tf.image.encode_png(prediction, compression=0)
 
-            return dict(predict_png_bytes=prediction)  # important _bytes suffix for TF Serving
+            return dict(
+                predict_png_bytes=prediction
+            )  # important _bytes suffix for TF Serving
 
         signatures['predict_png'] = predict_png
 

@@ -35,7 +35,7 @@ def gaussian2d(size=(32, 32), sigma=0.5):
     x, y = tf.meshgrid(tf.linspace(-1.0, 1.0, size[0]), tf.linspace(-1.0, 1.0, size[1]))
     d_squared = x * x + y * y
     two_times_sigma_squared = 2.0 * (sigma ** 2.0)
-    return tf.exp(-d_squared/two_times_sigma_squared)
+    return tf.exp(-d_squared / two_times_sigma_squared)
 
 
 @tf.function
@@ -76,11 +76,12 @@ def get_gaussian_kernels(lower_sigma=0.8, upper_sigma=2.5, steps=25):
     :param steps:
     :return:
     """
-    return tf.stack([
-        get_gaussian_kernel(s, k=sigma_to_k(upper_sigma))
-        for s in
-        tf.linspace(lower_sigma, upper_sigma, steps)
-    ])
+    return tf.stack(
+        [
+            get_gaussian_kernel(s, k=sigma_to_k(upper_sigma))
+            for s in tf.linspace(lower_sigma, upper_sigma, steps)
+        ]
+    )
 
 
 @tf.function
@@ -91,7 +92,9 @@ def convolve(image, kernel):
     :param kernel:
     :return:
     """
-    return tf.nn.conv2d(image[tf.newaxis], kernel, strides=[1, 1, 1, 1], padding='SAME')[0]
+    return tf.nn.conv2d(
+        image[tf.newaxis], kernel, strides=[1, 1, 1, 1], padding='SAME'
+    )[0]
 
 
 @tf.function
@@ -114,11 +117,23 @@ def pad_to(input_, target_block_size, mode='REFLECT'):
     #      [0,0]
     # ])
 
-    paddings = tf.convert_to_tensor([
-            [0, target_block_size[0] - image_shape[0] if target_block_size[0] >= image_shape[0] else 0],
-            [0, target_block_size[1] - image_shape[1] if target_block_size[1] >= image_shape[1] else 0],
-            [0, 0]
-    ])
+    paddings = tf.convert_to_tensor(
+        [
+            [
+                0,
+                target_block_size[0] - image_shape[0]
+                if target_block_size[0] >= image_shape[0]
+                else 0,
+            ],
+            [
+                0,
+                target_block_size[1] - image_shape[1]
+                if target_block_size[1] >= image_shape[1]
+                else 0,
+            ],
+            [0, 0],
+        ]
+    )
 
     padded_input = tf.pad(input_, paddings=paddings, mode=mode)
 

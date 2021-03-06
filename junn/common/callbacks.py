@@ -1,10 +1,10 @@
-from tensorflow.keras.callbacks import Callback
 import time
+
 import numpy as np
-
 import tensorflow as tf
-
 from junn_predict.common.timed import Timed
+from tensorflow.keras.callbacks import Callback
+
 from ..io.tiffmasks import tiff_masks
 
 
@@ -13,7 +13,15 @@ class TensorBoardSegmentationCallback(Callback):
     The callback will run the model on a set of test images to produce test predictions (e.g. segmentations) observable
     via TensorBoard.
     """
-    def __init__(self, tensorboard_callback, prediction_callback, input_file_name=None, every_epoch=1, metrics=None):
+
+    def __init__(
+        self,
+        tensorboard_callback,
+        prediction_callback,
+        input_file_name=None,
+        every_epoch=1,
+        metrics=None,
+    ):
         """
         Constructor.
         :param tensorboard_callback:
@@ -29,11 +37,14 @@ class TensorBoardSegmentationCallback(Callback):
 
         self.every_epoch = every_epoch
 
-        self.input_images_masks = list(tiff_masks(input_file_name,
-                                                  background=0.0,
-                                                  foreground=1.0,
-                                                  border=0.0,
-                                                  ))
+        self.input_images_masks = list(
+            tiff_masks(
+                input_file_name,
+                background=0.0,
+                foreground=1.0,
+                border=0.0,
+            )
+        )
 
         self.metrics = metrics if metrics else []
 
@@ -61,7 +72,9 @@ class TensorBoardSegmentationCallback(Callback):
 
         # noinspection PyProtectedMember
         with self.tb._train_writer.as_default():
-            segmentation_str = "segmentation_%%0%dd" % len(str(len(self.input_images_masks)))
+            segmentation_str = "segmentation_%%0%dd" % len(
+                str(len(self.input_images_masks))
+            )
             for n, (image, mask) in enumerate(self.input_images_masks):
 
                 segmentation_name = segmentation_str % n
@@ -78,7 +91,11 @@ class TensorBoardSegmentationCallback(Callback):
 
                 tf.summary.image(segmentation_name, result, step=epoch)
 
-                logs['%s_%s' % (segmentation_name, 'pixels_per_second')] = pixels_per_second
+                logs[
+                    '%s_%s' % (segmentation_name, 'pixels_per_second')
+                ] = pixels_per_second
 
                 for metric in self.metrics:
-                    logs['%s_%s' % (segmentation_name, metric.__name__)] = float(metric(mask, raw_result))
+                    logs['%s_%s' % (segmentation_name, metric.__name__)] = float(
+                        metric(mask, raw_result)
+                    )

@@ -44,7 +44,9 @@ def parse_tensor(tensor, coerce):
     for n in range(0, max(parse_tensor_type_lookup.keys()) + 1):
         if n in parse_tensor_type_lookup:
             dtype = parse_tensor_type_lookup[n]
-            arguments.append((n, lambda: tf.cast(tf.io.parse_tensor(tensor, dtype), coerce)))
+            arguments.append(
+                (n, lambda: tf.cast(tf.io.parse_tensor(tensor, dtype), coerce))
+            )
         else:
             arguments.append((n, lambda: tf.zeros(0, dtype=coerce)))
 
@@ -59,6 +61,7 @@ def create_example(x, y):
     :param y:
     :return:
     """
+
     def _bytes_feature(value):
         if isinstance(value, type(tf.constant(0))):
             value = value.numpy()
@@ -68,7 +71,7 @@ def create_example(x, y):
         features=tf.train.Features(
             feature=dict(
                 x=_bytes_feature(tf.io.serialize_tensor(x)),
-                y=_bytes_feature(tf.io.serialize_tensor(y))
+                y=_bytes_feature(tf.io.serialize_tensor(y)),
             )
         )
     ).SerializeToString()
@@ -81,8 +84,7 @@ def read_junn_tfrecord(file_name):
     :return:
     """
     feature_description = dict(
-        x=tf.io.FixedLenFeature([], tf.string),
-        y=tf.io.FixedLenFeature([], tf.string)
+        x=tf.io.FixedLenFeature([], tf.string), y=tf.io.FixedLenFeature([], tf.string)
     )
 
     @tf.function
@@ -92,12 +94,20 @@ def read_junn_tfrecord(file_name):
     # sad but true: we need to peek into the dataset to get the dtype
     first = next(iter(tf.data.TFRecordDataset(file_name).map(_parse)))
 
-    x_magic_number, y_magic_number = get_tensor_magic_number(first['x']), get_tensor_magic_number(first['y'])
-    x_type, y_type = parse_tensor_type_lookup[x_magic_number.numpy()], parse_tensor_type_lookup[y_magic_number.numpy()]
+    x_magic_number, y_magic_number = (
+        get_tensor_magic_number(first['x']),
+        get_tensor_magic_number(first['y']),
+    )
+    x_type, y_type = (
+        parse_tensor_type_lookup[x_magic_number.numpy()],
+        parse_tensor_type_lookup[y_magic_number.numpy()],
+    )
 
     @tf.function
     def _unserialize(example):
-        return tf.io.parse_tensor(example['x'], x_type), tf.io.parse_tensor(example['y'], y_type)
+        return tf.io.parse_tensor(example['x'], x_type), tf.io.parse_tensor(
+            example['y'], y_type
+        )
 
     raw_dataset = tf.data.TFRecordDataset(file_name)
     dataset = raw_dataset

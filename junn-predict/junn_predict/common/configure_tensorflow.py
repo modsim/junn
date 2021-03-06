@@ -1,6 +1,6 @@
+import logging
 import os
 import sys
-import logging
 
 
 def get_gpu_memory_usages_megabytes():
@@ -15,7 +15,11 @@ def get_gpu_memory_usages_megabytes():
             nvml.nvmlInit()
         except nvml.NVMLError_LibraryNotFound:
             if nvml.sys.platform[:3] == 'win':
-                nvml.nvmlLib = nvml.CDLL(nvml.os.path.join(nvml.os.getenv('SystemRoot'), 'System32', 'nvml.dll'))
+                nvml.nvmlLib = nvml.CDLL(
+                    nvml.os.path.join(
+                        nvml.os.getenv('SystemRoot'), 'System32', 'nvml.dll'
+                    )
+                )
                 nvml.nvmlInit()
             else:
                 raise
@@ -27,9 +31,15 @@ def get_gpu_memory_usages_megabytes():
     devices = list(range(device_count))
     device_handles = [nvml.nvmlDeviceGetHandleByIndex(device) for device in devices]
 
-    memory_infos = [nvml.nvmlDeviceGetMemoryInfo(handle) for device, handle in zip(devices, device_handles)]
-    megabytes = 1024**2
-    memory_usages = [(int(memory_info.used) // megabytes, int(memory_info.total) // megabytes) for memory_info in memory_infos]
+    memory_infos = [
+        nvml.nvmlDeviceGetMemoryInfo(handle)
+        for device, handle in zip(devices, device_handles)
+    ]
+    megabytes = 1024 ** 2
+    memory_usages = [
+        (int(memory_info.used) // megabytes, int(memory_info.total) // megabytes)
+        for memory_info in memory_infos
+    ]
 
     nvml.nvmlShutdown()
 
@@ -44,9 +54,10 @@ def set_seed(seed):
     :return:
     """
 
+    import random as rn
+
     import numpy as np
     import tensorflow as tf
-    import random as rn
 
     # this might be cargo-cult ... it does not seem to affect an already running Python process
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -91,11 +102,14 @@ def configure_tensorflow(seed=None, windows_maximum_gpu_memory=0.75):
         memory_usages = get_gpu_memory_usages_megabytes()
 
         for device, (memory_used, memory_total) in zip(devices, memory_usages):
-            tf.config.experimental.set_virtual_device_configuration(device, [
-                tf.config.experimental.VirtualDeviceConfiguration(
-                    memory_limit=int(memory_total * windows_maximum_gpu_memory)
-                )
-            ])
+            tf.config.experimental.set_virtual_device_configuration(
+                device,
+                [
+                    tf.config.experimental.VirtualDeviceConfiguration(
+                        memory_limit=int(memory_total * windows_maximum_gpu_memory)
+                    )
+                ],
+            )
 
     tf_logger = logging.getLogger('tensorflow')
     for handler in tf_logger.handlers[:]:

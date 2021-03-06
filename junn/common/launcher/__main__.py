@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import sys
 import glob
 import os
 import os.path as osp
+import sys
+
 # noinspection PyProtectedMember
 from runpy import _run_module_as_main
 
@@ -20,11 +21,10 @@ def get_possible_commands():
 
     def strip_name(name):
         return (
-            name.
-            replace(base_directory + osp.sep, '').
-            replace(base_name + osp.sep, '').
-            replace(osp.sep + '__main__.py', '').
-            replace(osp.sep, '.')
+            name.replace(base_directory + osp.sep, '')
+            .replace(base_name + osp.sep, '')
+            .replace(osp.sep + '__main__.py', '')
+            .replace(osp.sep, '.')
         )
 
     raw_commands = glob.glob(base_directory + '/**/__main__.py', recursive=True)
@@ -39,11 +39,20 @@ def print_possible_commands():
     print()
 
     for module in sorted(get_possible_commands()):
-        print('%s %s' % (base_name, module,))
+        print(
+            '%s %s'
+            % (
+                base_name,
+                module,
+            )
+        )
 
 
 def get_gpu_memory_usage_fractions():
-    return [used/total if total else 0.0 for used, total in get_gpu_memory_usages_megabytes()]
+    return [
+        used / total if total else 0.0
+        for used, total in get_gpu_memory_usages_megabytes()
+    ]
 
 
 def get_mean_gpu_memory_usage_fraction():
@@ -71,9 +80,14 @@ def main():
         os.environ['CUDA_VISIBLE_DEVICES'] = ''
         del sys.argv[0]
 
-    if 'CUDA_VISIBLE_DEVICES' not in os.environ and get_mean_gpu_memory_usage_fraction() > memory_usage_warning_threshold:
-        print("More than %.2f%% of GPU memory used, likely some other process is still using the GPU!" %
-              (memory_usage_warning_threshold * 100.0))
+    if (
+        'CUDA_VISIBLE_DEVICES' not in os.environ
+        and get_mean_gpu_memory_usage_fraction() > memory_usage_warning_threshold
+    ):
+        print(
+            "More than %.2f%% of GPU memory used, likely some other process is still using the GPU!"
+            % (memory_usage_warning_threshold * 100.0)
+        )
 
     sys.argv[0] = base_name + '.' + sys.argv[0]
 

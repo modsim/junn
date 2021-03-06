@@ -1,5 +1,4 @@
 import sys
-
 from urllib.parse import urlparse
 
 from .grpc_connector import GRPCConnector

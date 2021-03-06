@@ -1,30 +1,31 @@
 # from junn.common.configure_tensorflow import configure_tensorflow
 # configure_tensorflow(0)  # very important to set allow_growth to True
 
-import pytest
-
 import numpy as np
-from tifffile import TiffWriter
-from roifile import ImagejRoi
-
+import pytest
 from PIL import Image
+from roifile import ImagejRoi
+from tifffile import TiffWriter
 
 
 def quadratic_test_image(size=512, dtype=np.uint8):
     image = np.zeros((size, size), dtype=dtype)
 
-    image[128:128 + 256, 128:128 + 256] = 2 ** (dtype().nbytes * 8) - 1
+    image[128 : 128 + 256, 128 : 128 + 256] = 2 ** (dtype().nbytes * 8) - 1
 
     return image
 
 
 def some_imagejroi():
     return ImagejRoi.frompoints(
-        [[128.0 + 000.0, 128.0 + 000.0],
-         [128.0 + 256.0, 128.0 + 000.0],
-         [128.0 + 256.0, 128.0 + 256.0],
-         [128.0 + 000.0, 128.0 + 256.0],
-         [128.0 + 000.0, 128.0 + 000.0]])
+        [
+            [128.0 + 000.0, 128.0 + 000.0],
+            [128.0 + 256.0, 128.0 + 000.0],
+            [128.0 + 256.0, 128.0 + 256.0],
+            [128.0 + 000.0, 128.0 + 256.0],
+            [128.0 + 000.0, 128.0 + 000.0],
+        ]
+    )
 
 
 def trackmate_roi():
@@ -34,9 +35,7 @@ def trackmate_roi():
 
 
 def dualpoint_roi():
-    return ImagejRoi.frompoints(
-        some_imagejroi().coordinates()[:2]
-    )
+    return ImagejRoi.frompoints(some_imagejroi().coordinates()[:2])
 
 
 @pytest.fixture(scope='function')
@@ -48,8 +47,9 @@ def empty_training_data(tmpdir_factory):
 
         tiff.save(
             image,
-            resolution=(1.0/0.065, 1.0/0.065), metadata=dict(unit='um'),
-            ijmetadata=dict(Overlays=[roi.tobytes() for roi in [some_imagejroi()]])
+            resolution=(1.0 / 0.065, 1.0 / 0.065),
+            metadata=dict(unit='um'),
+            ijmetadata=dict(Overlays=[roi.tobytes() for roi in [some_imagejroi()]]),
         )
 
     return name
@@ -64,12 +64,14 @@ def funny_tiff_file(tmpdir_factory):
 
         tiff.save(
             image,
-            resolution=(1.0/0.065, 1.0/0.065), metadata=dict(unit='um'),
-            ijmetadata=dict(Overlays=[roi.tobytes() for roi in [
-                some_imagejroi(),
-                trackmate_roi(),
-                dualpoint_roi()
-            ]])
+            resolution=(1.0 / 0.065, 1.0 / 0.065),
+            metadata=dict(unit='um'),
+            ijmetadata=dict(
+                Overlays=[
+                    roi.tobytes()
+                    for roi in [some_imagejroi(), trackmate_roi(), dualpoint_roi()]
+                ]
+            ),
         )
 
     return name
@@ -113,6 +115,7 @@ def disable_cuda():
 @pytest.fixture(scope='function')
 def tf_eager():
     from contextlib import contextmanager
+
     import tensorflow as tf
 
     @contextmanager

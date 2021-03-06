@@ -1,18 +1,23 @@
-from tensorflow.keras.layers import Conv2D, concatenate, Reshape, Activation
+from tensorflow.keras.layers import Activation, Conv2D, Reshape, concatenate
 
 
 def msd_net(
-        input_tensor,
-        d=3,
-        w=2,
-        tile_size=(32, 32,),
-        activation='selu',
-        last_activation='sigmoid',
-        categorical=False,
-        output_channels=1,
-        kernel_size=3,
-        max_dilation=10,
-        filters_per_convolution=1, **kwargs):
+    input_tensor,
+    d=3,
+    w=2,
+    tile_size=(
+        32,
+        32,
+    ),
+    activation='selu',
+    last_activation='sigmoid',
+    categorical=False,
+    output_channels=1,
+    kernel_size=3,
+    max_dilation=10,
+    filters_per_convolution=1,
+    **kwargs
+):
     """
     A MS-D net according to
 
@@ -41,15 +46,21 @@ def msd_net(
         for j in range(w):
             dilation = (i * w + j) % max_dilation + 1
             node = Conv2D(
-                    filters=filters_per_convolution,
-                    kernel_size=kernel_size,
-                    dilation_rate=dilation,
-                    padding='same',
-                    activation=activation,
-                    name='conv2d_d_%d_w_%d' % (i, j,)
+                filters=filters_per_convolution,
+                kernel_size=kernel_size,
+                dilation_rate=dilation,
+                padding='same',
+                activation=activation,
+                name='conv2d_d_%d_w_%d'
+                % (
+                    i,
+                    j,
+                ),
             )(
                 # we must COPY the list here because to tf issue #32023
-                concatenate(last_tensors[:]) if len(last_tensors) > 1 else last_tensors[0]
+                concatenate(last_tensors[:])
+                if len(last_tensors) > 1
+                else last_tensors[0]
             )
 
             add += [node]
@@ -59,9 +70,13 @@ def msd_net(
     combined = concatenate(last_tensors[:])
 
     if not categorical:
-        result = Conv2D(filters=output_channels, kernel_size=1, activation=last_activation)(combined)
+        result = Conv2D(
+            filters=output_channels, kernel_size=1, activation=last_activation
+        )(combined)
     else:
-        result = Conv2D(filters=output_channels, kernel_size=1, activation='linear')(combined)
+        result = Conv2D(filters=output_channels, kernel_size=1, activation='linear')(
+            combined
+        )
         result = Reshape((tile_size[0] * tile_size[1], output_channels))(result)
         result = Activation(last_activation)(result)
         result = Reshape(tile_size + (output_channels,))(result)

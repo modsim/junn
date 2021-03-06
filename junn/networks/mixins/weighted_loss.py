@@ -5,9 +5,15 @@ from .tile_based_network import TilebasedNetwork
 
 
 @tf.function
-def calculate_weightmap(image, sigma=3.5, overlap_ratio=2.5, inner_ratio=0.75, empty=0.25):
+def calculate_weightmap(
+    image, sigma=3.5, overlap_ratio=2.5, inner_ratio=0.75, empty=0.25
+):
     blurred = convolve(image, get_gaussian_kernel(sigma))
-    weightmap = (1 - image) * overlap_ratio * blurred + inner_ratio * image + (empty * ((image - 1) / -1))
+    weightmap = (
+        (1 - image) * overlap_ratio * blurred
+        + inner_ratio * image
+        + (empty * ((image - 1) / -1))
+    )
     return weightmap
 
 
@@ -15,17 +21,21 @@ def calculate_weightmap(image, sigma=3.5, overlap_ratio=2.5, inner_ratio=0.75, e
 def split_weight_off(raw_y_true, y_pred):
     size = tf.shape(raw_y_true)[1]
 
-    y_true = raw_y_true[:, :size // 2, :, :]
-    y_weight = raw_y_true[:, size // 2:, :, :]
+    y_true = raw_y_true[:, : size // 2, :, :]
+    y_weight = raw_y_true[:, size // 2 :, :, :]
 
     return y_true, y_pred, y_weight
 
 
-class WeightedLoss(TilebasedNetwork,TilebasedNetwork.Virtual):
+class WeightedLoss(TilebasedNetwork, TilebasedNetwork.Virtual):
     def get_training_fn(self, validation: bool = False):
         parent_fn = super().get_training_fn(validation=validation)
 
-        weighted_loss = self.parameters['weighted_loss'] if 'weighted_loss' in self.parameters else False
+        weighted_loss = (
+            self.parameters['weighted_loss']
+            if 'weighted_loss' in self.parameters
+            else False
+        )
 
         if weighted_loss:
 
@@ -43,7 +53,11 @@ class WeightedLoss(TilebasedNetwork,TilebasedNetwork.Virtual):
             return parent_fn
 
     def get_loss(self):
-        weighted_loss = self.parameters['weighted_loss'] if 'weighted_loss' in self.parameters else False
+        weighted_loss = (
+            self.parameters['weighted_loss']
+            if 'weighted_loss' in self.parameters
+            else False
+        )
 
         if weighted_loss:
             from ...common.losses import dice_index_weighted
@@ -58,7 +72,11 @@ class WeightedLoss(TilebasedNetwork,TilebasedNetwork.Virtual):
             return super().get_loss()
 
     def get_metrics(self):
-        weighted_loss = self.parameters['weighted_loss'] if 'weighted_loss' in self.parameters else False
+        weighted_loss = (
+            self.parameters['weighted_loss']
+            if 'weighted_loss' in self.parameters
+            else False
+        )
 
         metrics = super().get_metrics()
 

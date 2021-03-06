@@ -11,7 +11,9 @@ class TilebasedPredictionMixin:
         prediction_tile_size = tile_size[0:2]
         overlap = (32, 32)  # None  # (32, 32)
 
-        @tf.function(input_signature=[tf.TensorSpec([None, None, None], dtype=tf.float32)])
+        @tf.function(
+            input_signature=[tf.TensorSpec([None, None, None], dtype=tf.float32)]
+        )
         def _predict(image):
             image = self.get_raw_fn()(image)
             image = tf.expand_dims(image, axis=0)
@@ -27,7 +29,10 @@ class TilebasedPredictionMixin:
                 image = tf.expand_dims(image, axis=-1)
 
             prediction = RunModelTiled(
-                model=model, block_size=prediction_tile_size, batch_size=32, overlap=overlap
+                model=model,
+                block_size=prediction_tile_size,
+                batch_size=32,
+                overlap=overlap,
             )(image)
 
             prediction = prediction[0]

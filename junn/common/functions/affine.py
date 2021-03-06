@@ -1,5 +1,6 @@
-import tensorflow as tf
 from math import pi
+
+import tensorflow as tf
 
 const_pi_180 = pi / 180.0
 
@@ -26,7 +27,13 @@ def shape_to_h_w(shape):
     # TensorFlow does not like a 1 <= tf.rank(shape) <= 4 comparison!
     # noinspection PyChainedComparisons
     with tf.control_dependencies(
-            [tf.Assert(tf.size(shape) >= 1 and tf.size(shape) <= 4, ["Invalid shape passed to shape_to_h_w"])]):
+        [
+            tf.Assert(
+                tf.size(shape) >= 1 and tf.size(shape) <= 4,
+                ["Invalid shape passed to shape_to_h_w"],
+            )
+        ]
+    ):
         if tf.size(shape) == 4:
             return shape[1], shape[2]
         else:
@@ -54,11 +61,9 @@ def tfm_shift(x=0.0, y=0.0, shape=None):
     :param shape:
     :return:
     """
-    return tf.convert_to_tensor([
-        [1.0, 0.0, -y],
-        [0.0, 1.0, -x],
-        [0.0, 0.0, 1.0]
-    ], dtype=tf.float32)
+    return tf.convert_to_tensor(
+        [[1.0, 0.0, -y], [0.0, 1.0, -x], [0.0, 0.0, 1.0]], dtype=tf.float32
+    )
 
 
 @tf.function
@@ -84,11 +89,9 @@ def tfm_reflect(x=0.0, y=0.0, shape=(0, 0)):
     else:
         h = tf.cast(h, tf.float32)
 
-    return tf.convert_to_tensor([
-        [y, 0.0, 0.0],
-        [0.0, x, 0.0],
-        [0.0, 0.0, 1.0]
-    ], dtype=tf.float32) @ tfm_shift(w, h)
+    return tf.convert_to_tensor(
+        [[y, 0.0, 0.0], [0.0, x, 0.0], [0.0, 0.0, 1.0]], dtype=tf.float32
+    ) @ tfm_shift(w, h)
 
 
 @tf.function
@@ -106,13 +109,16 @@ def tfm_rotate(angle=0.0, shape=(0, 0)):
     s_theta = tf.sin(rad)
 
     return (
-            tfm_shift(x=-w / 2, y=-h / 2) @
-            tf.convert_to_tensor([
+        tfm_shift(x=-w / 2, y=-h / 2)
+        @ tf.convert_to_tensor(
+            [
                 [c_theta, s_theta, 0.0],  # tf.cast(h, tf.float32) * 0.5],
                 [-s_theta, c_theta, 0.0],  # -tf.cast(w, tf.float32) * 0.5],
-                [0.0, 0.0, 1.0]
-            ], dtype=tf.float32) @
-            tfm_shift(x=w / 2, y=h / 2)
+                [0.0, 0.0, 1.0],
+            ],
+            dtype=tf.float32,
+        )
+        @ tfm_shift(x=w / 2, y=h / 2)
     )
 
 
@@ -130,13 +136,12 @@ def tfm_scale(xs=1.0, ys=None, shape=(0, 0)):
 
     w, h = shape_to_h_w(shape)
     return (
-            tfm_shift(x=-w / 2, y=-h / 2) @
-            tf.convert_to_tensor([
-                [1.0 / ys, 0.0, 0.0],
-                [0.0, 1.0 / xs, 0.0],
-                [0.0, 0.0, 1.0]
-            ], dtype=tf.float32) @
-            tfm_shift(x=w / 2, y=h / 2)
+        tfm_shift(x=-w / 2, y=-h / 2)
+        @ tf.convert_to_tensor(
+            [[1.0 / ys, 0.0, 0.0], [0.0, 1.0 / xs, 0.0], [0.0, 0.0, 1.0]],
+            dtype=tf.float32,
+        )
+        @ tfm_shift(x=w / 2, y=h / 2)
     )
 
 
@@ -153,13 +158,11 @@ def tfm_shear(x_angle=0.0, y_angle=0.0, shape=(0, 0)):
     phi, psi = tf.tan(radians(x_angle)), tf.tan(radians(y_angle))
 
     return (
-            tfm_shift(x=-w / 2, y=-h / 2) @
-            tf.convert_to_tensor([
-                [1.0, phi, 0.0],
-                [psi, 1.0, 0.0],
-                [0.0, 0.0, 1.0]
-            ], dtype=tf.float32) @
-            tfm_shift(x=w / 2, y=h / 2)
+        tfm_shift(x=-w / 2, y=-h / 2)
+        @ tf.convert_to_tensor(
+            [[1.0, phi, 0.0], [psi, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=tf.float32
+        )
+        @ tfm_shift(x=w / 2, y=h / 2)
     )
 
 

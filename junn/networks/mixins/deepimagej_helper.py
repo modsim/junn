@@ -1,10 +1,10 @@
-import os
 import datetime
-import numpy as np
-
+import os
 from functools import reduce
 
+import numpy as np
 from tifffile import imsave as tifffile_imsave
+
 from ...common import distributed
 
 
@@ -18,14 +18,30 @@ def serialize_value(value):
 def serialize_xml(the_dict):
     def _inner(inner_dict, level=0):
         return ''.join(
-            reduce(lambda a, b: a + b, (
+            reduce(
+                lambda a, b: a + b,
                 (
-                        [('\t' * level) + '<%s>' % (key,) + '\n'] + [_inner(value, level + 1)] +
-                        [('\t' * level) + '</%s>' % (key,) + '\n']
-                ) if isinstance(value, dict) else (
-                    [('\t' * level) + '<%s>%s</%s>' % (key, serialize_value(value), key,) + '\n']
-                ) for key, value in inner_dict.items()
-            ))
+                    (
+                        [('\t' * level) + '<%s>' % (key,) + '\n']
+                        + [_inner(value, level + 1)]
+                        + [('\t' * level) + '</%s>' % (key,) + '\n']
+                    )
+                    if isinstance(value, dict)
+                    else (
+                        [
+                            ('\t' * level)
+                            + '<%s>%s</%s>'
+                            % (
+                                key,
+                                serialize_value(value),
+                                key,
+                            )
+                            + '\n'
+                        ]
+                    )
+                    for key, value in inner_dict.items()
+                ),
+            )
         )
 
     return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + _inner(the_dict)
@@ -87,7 +103,7 @@ class DeepImageJCompatibilityMixin:
                     'PreprocessingFile': 'preprocessing.txt',
                     'PostprocessingFile': 'postprocessing.txt',
                     'slices': 1,
-                }
+                },
             }
         }
 
@@ -103,6 +119,24 @@ class DeepImageJCompatibilityMixin:
 
         write_to(p('postprocessing.txt'), '')
 
-        tifffile_imsave(p('exampleImage.tiff'), np.zeros((32, 32,), dtype=np.float32))
+        tifffile_imsave(
+            p('exampleImage.tiff'),
+            np.zeros(
+                (
+                    32,
+                    32,
+                ),
+                dtype=np.float32,
+            ),
+        )
 
-        tifffile_imsave(p('resultImage.tiff'), np.zeros((32, 32,), dtype=np.float32))
+        tifffile_imsave(
+            p('resultImage.tiff'),
+            np.zeros(
+                (
+                    32,
+                    32,
+                ),
+                dtype=np.float32,
+            ),
+        )

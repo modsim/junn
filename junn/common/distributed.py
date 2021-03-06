@@ -1,5 +1,6 @@
-import os
 import logging
+import os
+
 import tensorflow as tf
 
 try:
@@ -27,8 +28,13 @@ def _init_horovod():
 
     log.info("Enabling Horovod ...")
     hvd.init()
-    log.info("Horovod: global rank: %r, global size: %r, local rank: %r, local size: %r",
-             hvd.rank(), hvd.size(), hvd.local_rank(), hvd.local_size())
+    log.info(
+        "Horovod: global rank: %r, global size: %r, local rank: %r, local size: %r",
+        hvd.rank(),
+        hvd.size(),
+        hvd.local_rank(),
+        hvd.local_size(),
+    )
 
     if hvd.size() > 1:
         _running_distributed = True
@@ -38,12 +44,18 @@ def pin_devices():
     devices = tf.config.get_visible_devices('GPU')
 
     if not devices:
-        log.warning("Horovod: No GPUs available. Will not pin anything. (Is this really what you wanted?)")
+        log.warning(
+            "Horovod: No GPUs available. Will not pin anything. (Is this really what you wanted?)"
+        )
     else:
         target_device = devices[hvd.local_rank()]
 
-        log.info("Horovod: Device pinning enabled, setting this worker (local/global %d/%d) to use %r",
-                 hvd.local_rank(), hvd.rank(), target_device)
+        log.info(
+            "Horovod: Device pinning enabled, setting this worker (local/global %d/%d) to use %r",
+            hvd.local_rank(),
+            hvd.rank(),
+            target_device,
+        )
         tf.config.set_visible_devices([target_device], 'GPU')
 
 
@@ -121,9 +133,7 @@ def get_callbacks():
     """
     callbacks = []
     if hvd:
-        callbacks.append(
-            hvd.callbacks.BroadcastGlobalVariablesCallback(0)
-        )
+        callbacks.append(hvd.callbacks.BroadcastGlobalVariablesCallback(0))
     return callbacks
 
 

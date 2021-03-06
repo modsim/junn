@@ -1,29 +1,31 @@
+import numpy as np
+import pytest
+
 from junn.networks import NeuralNetwork, tf_function_nop
 from junn.networks.all import *
-
-import numpy as np
-
-import pytest
 
 
 def network_test(net: NeuralNetwork):
     net.setup_model()
 
 
-@pytest.mark.parametrize('network,parameters,raises', [
-    (Unet, '', None),
-    (Unet, 'tile_size=96', None),
-    (Unet, 'categorical=True', None),
-    (Unet, 'recurrent_num=2', None),
-    (Unet, 'residual_connections=True', None),
-    (Unet, 'just_convolutions=True', None),
-    (Unet, 'dropout_down=0.5', None),
-    (LinkNet, '', None),
-    (LinkNet, 'batch_normalization=True', None),
-    (LinkNet, 'categorical=True', NotImplementedError),
-    (MSD, '', None),
-    (MSD, 'categorical=True', None),
-])
+@pytest.mark.parametrize(
+    'network,parameters,raises',
+    [
+        (Unet, '', None),
+        (Unet, 'tile_size=96', None),
+        (Unet, 'categorical=True', None),
+        (Unet, 'recurrent_num=2', None),
+        (Unet, 'residual_connections=True', None),
+        (Unet, 'just_convolutions=True', None),
+        (Unet, 'dropout_down=0.5', None),
+        (LinkNet, '', None),
+        (LinkNet, 'batch_normalization=True', None),
+        (LinkNet, 'categorical=True', NotImplementedError),
+        (MSD, '', None),
+        (MSD, 'categorical=True', None),
+    ],
+)
 def test_network(network, parameters, raises):
     parameters = 'dict(' + parameters + ')'
     parameters = eval(parameters)

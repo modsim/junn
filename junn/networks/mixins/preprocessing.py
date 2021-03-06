@@ -13,4 +13,5 @@ class PerImageStandardizationPreprocessingMixin:
             with deprecation.silence():  # can be removed once TF PR # 34807 is merged
                 image = tf.image.per_image_standardization(image)
             return image
+
         return preprocess

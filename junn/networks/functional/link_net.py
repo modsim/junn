@@ -1,16 +1,24 @@
 from tensorflow.keras.layers import (
-    Conv2D, MaxPooling2D, concatenate, Reshape, Activation, Add, Conv2DTranspose, BatchNormalization
+    Activation,
+    Add,
+    BatchNormalization,
+    Conv2D,
+    Conv2DTranspose,
+    MaxPooling2D,
+    Reshape,
+    concatenate,
 )
 
 
 def link_net(
-        input_tensor,
-        activation='selu',
-        last_activation='sigmoid',
-        batch_normalization=False,
-        categorical=False,
-        output_channels=1,
-        **kwargs):
+    input_tensor,
+    activation='selu',
+    last_activation='sigmoid',
+    batch_normalization=False,
+    categorical=False,
+    output_channels=1,
+    **kwargs
+):
     """
     A LinkNet according to
 
@@ -36,7 +44,7 @@ def link_net(
         1: dict(m=64, n=64),
         2: dict(m=64, n=128),
         3: dict(m=128, n=256),
-        4: dict(m=256, n=512)
+        4: dict(m=256, n=512),
     }
 
     min_depth = 1
@@ -66,7 +74,9 @@ def link_net(
 
         # THIS DOES NOT WORK?!
 
-        tensor = Conv2D(filters=n, kernel_size=3, padding='same', strides=2, activation=activation)(tensor)
+        tensor = Conv2D(
+            filters=n, kernel_size=3, padding='same', strides=2, activation=activation
+        )(tensor)
 
         if batch_normalization:
             tensor = BatchNormalization()(tensor)
@@ -74,18 +84,24 @@ def link_net(
         # fix
         residual_connection = tensor
         # /
-        tensor = Conv2D(filters=n, kernel_size=3, padding='same', activation=activation)(tensor)
+        tensor = Conv2D(
+            filters=n, kernel_size=3, padding='same', activation=activation
+        )(tensor)
         tensor = Add()([tensor, residual_connection])
 
         # #
 
         residual_connection = tensor
-        tensor = Conv2D(filters=n, kernel_size=3, padding='same', activation=activation)(tensor)
+        tensor = Conv2D(
+            filters=n, kernel_size=3, padding='same', activation=activation
+        )(tensor)
 
         if batch_normalization:
             tensor = BatchNormalization()(tensor)
 
-        tensor = Conv2D(filters=n, kernel_size=3, padding='same', activation=activation)(tensor)
+        tensor = Conv2D(
+            filters=n, kernel_size=3, padding='same', activation=activation
+        )(tensor)
         tensor = Add()([tensor, residual_connection])
 
         # deeper layers
@@ -95,7 +111,9 @@ def link_net(
 
         # Decoder part
 
-        tensor = Conv2D(filters=m // 4, kernel_size=1, padding='same', activation=activation)(tensor)
+        tensor = Conv2D(
+            filters=m // 4, kernel_size=1, padding='same', activation=activation
+        )(tensor)
 
         if batch_normalization:
             tensor = BatchNormalization()(tensor)
@@ -105,13 +123,15 @@ def link_net(
             kernel_size=3,
             padding='same',
             strides=2,
-            activation=activation
+            activation=activation,
         )(tensor)
 
         if batch_normalization:
             tensor = BatchNormalization()(tensor)
 
-        tensor = Conv2D(filters=n, kernel_size=1, padding='same', activation=activation)(tensor)
+        tensor = Conv2D(
+            filters=n, kernel_size=1, padding='same', activation=activation
+        )(tensor)
 
         if depth > 1:
             tensor = Add()([tensor, outer_residual_connection])
@@ -120,7 +140,9 @@ def link_net(
 
     tensor = input_tensor
 
-    tensor = Conv2D(filters=64, kernel_size=7, padding='same', strides=2, activation=activation)(tensor)
+    tensor = Conv2D(
+        filters=64, kernel_size=7, padding='same', strides=2, activation=activation
+    )(tensor)
 
     if batch_normalization:
         tensor = BatchNormalization()(tensor)
@@ -132,18 +154,26 @@ def link_net(
     # they differentiate between full conv. (apparently, input=output size) and convolution (apparently mode=valid)
     # we only do full convolutions in the code here
 
-    tensor = Conv2DTranspose(filters=32, kernel_size=3, padding='same', strides=2, activation=activation)(tensor)
+    tensor = Conv2DTranspose(
+        filters=32, kernel_size=3, padding='same', strides=2, activation=activation
+    )(tensor)
     if batch_normalization:
         tensor = BatchNormalization()(tensor)
-    tensor = Conv2D(filters=32, kernel_size=3, padding='same', activation=activation)(tensor)
+    tensor = Conv2D(filters=32, kernel_size=3, padding='same', activation=activation)(
+        tensor
+    )
     if batch_normalization:
         tensor = BatchNormalization()(tensor)
     tensor = Conv2DTranspose(
         filters=output_channels,
-        kernel_size=2, padding='same', strides=2, activation=last_activation)(tensor)
+        kernel_size=2,
+        padding='same',
+        strides=2,
+        activation=last_activation,
+    )(tensor)
     result = tensor
 
-#                concatenate(last_tensors) if len(last_tensors) > 1 else last_tensors[0]
+    #                concatenate(last_tensors) if len(last_tensors) > 1 else last_tensors[0]
 
     # if not categorical:
     #     result = Conv2D(filters=output_channels, kernel_size=1, activation=last_activation)(combined)
