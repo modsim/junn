@@ -1,60 +1,50 @@
-# FROM continuumio/anaconda3  # seems to be very hard to properly use the GPU
-
-# base doesn't contain the libraries
-
-FROM nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04
-
-# parts from anaconda dockerfiles
-
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-
-ENV PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-ENV PYTHONDONTWRITEBYTECODE=1
+FROM nvidia/cuda:11.2.1-cudnn8-runtime-ubuntu20.04
 
 LABEL maintainer=c.sachs@fz-juelich.de
 
-COPY . /tmp/junnbuild/
+ARG DEBIAN_FRONTEND="noninteractive"
+ARG MICROMAMBA="http://api.anaconda.org/download/conda-forge/micromamba/0.8.0/linux-64/micromamba-0.8.0-he9b6cbd_0.tar.bz2"
+
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC
+ENV PATH=/opt/conda/bin:${PATH}
+ENV PATH=/opt/conda/bin:${PATH}
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+
+ENV PYTHONDONTWRITEBYTECODE=1
+
+ENV CONDA_PREFIX=/opt/conda
+ENV MAMBA_ROOT_PREFIX=${CONDA_PREFIX}
+
+COPY . /tmp/junnbuild
 
 WORKDIR /tmp/junnbuild
 
-RUN apt-get update && \
-    apt-get install -y wget libglib2.0-0 libnvinfer6 libnvinfer-plugin6 build-essential libgl1-mesa-glx && \
-    CONDA_INSTALLER=https://repo.anaconda.com/miniconda/Miniconda3-py38_4.9.2-Linux-x86_64.sh && \
-    wget --quiet $CONDA_INSTALLER -O ~/conda-installer.sh && \
-    bash ~/conda-installer.sh -b -p /opt/conda && \
-    rm ~/conda-installer.sh && \
-    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    echo "conda activate base" >> ~/.bashrc && \
-    conda config --add channels conda-forge && \
-    conda update --all && \
-    conda install -y conda-build conda-verify && \
-    find /opt/conda/ -follow -type f -name '*.a' -delete && \
-    find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
-    conda clean -afy && \
-    rm -rf /var/lib/apt/lists/* && \
-    echo "Starting stage two" && \
+RUN ln -s libcusolver.so.11 /usr/local/cuda/lib64/libcusolver.so.10 && \
     apt-get update && \
-    apt-get install -y cmake && \
+    apt-get install -y --no-install-recommends libglib2.0-0 libgl1-mesa-glx ca-certificates wget build-essential cmake && \
     rm -rf /var/lib/apt/lists/* && \
-    conda config --add channels modsim && \
-    conda config --add channels csachs && \
-    conda install -y ipython mpich python=3.8 && \
-    conda build junn-predict/recipe recipe && \
-    conda install -y -c local junn && \
-    # no need for conda cuda installation since it is included in the base image
-    # conda install cudatoolkit=10.1.243 cupti cudnn=7.6.5 && \
-    mkdir /opt/junn && \
-    find /opt/conda/conda-bld -name '*.tar.bz2' -exec cp {} /opt/junn && \
+    WORKDIR=`pwd` && mkdir -p /opt/conda/bin && cd /opt/conda/bin && \
+    wget -qO- $MICROMAMBA | tar xj bin/micromamba --strip-components=1 && unset MICROMAMBA && \
+    micromamba install -p $MAMBA_ROOT_PREFIX \
+        python=3.8 conda \
+        keras_nvidia_statistics conda-build conda-verify boa ipython mpich \
+        -c conda-forge -c modsim -c csachs && \
+    echo "channels:\n- conda-forge\n- modsim\n- csachs" > ~/.condarc && \
+    cd $WORKDIR && \
+    conda mambabuild junn-predict/recipe && \
+    conda mambabuild recipe && \
+    mamba install -y -c local junn && \
+    mkdir /opt/conda/packages-built && \
+    find /opt/conda/conda-bld -name '*.tar.bz2' -exec cp {} /opt/conda/packages-built \; && \
     conda clean -afy || true && \
     conda build purge-all && \
-    pip install tensorflow tensorflow-addons tensorflow-serving-api && \
-    pip install horovod && \
+    pip install -v tensorflow tensorflow-addons tensorflow-serving-api && \
+    pip install -v horovod && \
+    pip cache purge && \
+    apt-get purge --autoremove -y wget build-essential cmake && \
     mkdir /data && \
-    date && \
     echo "Done with JUNN building/installing."
 
 WORKDIR /data
 
-ENTRYPOINT ["python", "-m", "junn"
+ENTRYPOINT ["python", "-m", "junn"]
