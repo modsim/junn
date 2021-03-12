@@ -4,9 +4,12 @@ import sys
 
 import jsonpickle
 import numpy as np
-import tensorflow as tf
-import tqdm
+
+# isort: off
 from junn_predict.common import autoconfigure_tensorflow
+import tensorflow as tf
+# isort: on
+import tqdm
 from junn_predict.common.cli import get_common_argparser_and_setup
 from junn_predict.common.logging import DelayedFileLog
 from tifffile import memmap as tifffile_memmap
