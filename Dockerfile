@@ -4,7 +4,7 @@ LABEL maintainer=c.sachs@fz-juelich.de
 
 ARG DEBIAN_FRONTEND="noninteractive"
 ARG MICROMAMBA="https://anaconda.org/conda-forge/micromamba/0.8.2/download/linux-64/micromamba-0.8.2-1.tar.bz2"
-ARG PYTHONVERSION=3.8
+ARG PYTHONVERSION=3.9
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC
 ENV PATH=/opt/conda/bin:${PATH}
