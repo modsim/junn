@@ -67,7 +67,9 @@ def mixin_flatten_and_clip(what):
     def _inner(y_true, y_pred):
         return what(*flatten_and_clip(y_true), flatten_and_clip(y_pred))
 
-    _inner.__name__ = what.__name__  # cheating
+    # peculiar behavior
+    if isinstance(what.__name__, str):
+        _inner.__name__ = what.__name__
 
     if _inner.__name__[0] == '_':
         _inner.__name__ = _inner.__name__[1:]
@@ -169,3 +171,9 @@ def generate_tversky_loss(alpha=0.5, beta=0.5):
 def tversky_index(y_true, y_pred, alpha=0.5, beta=0.5):
     tp, tn, fp, fn, precision_, recall_ = tp_tn_fp_fn_precision_recall(y_true, y_pred)
     return tp / (tp + alpha * fp + beta * fn + epsilon())
+
+
+@tf.function
+def nan_loss(y_true, y_pred):
+    tp, tn, fp, fn, precision_, recall_ = tp_tn_fp_fn_precision_recall(y_true, y_pred)
+    return tp * tn * fp * fn * precision_ * recall_ * tf.sqrt(-1.0)

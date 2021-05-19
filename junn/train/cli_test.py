@@ -25,6 +25,8 @@ def test_main_dataset_benchmark(tmpdir, empty_training_data):
             'Unet',
             '--output-dataset',
             str(tmpdir.join('benchmark.tif')),
+            '-t',
+            'DatasetGenerationBenchmarkCount=100',
             '--output-dataset-count',
             '32',
             empty_training_data,
@@ -163,3 +165,9 @@ def test_main_image_directory_hvd_disable(tmpdir, empty_training_image_directory
     main(args + ['--resume'])
 
     junn.common.distributed.hvd = old_hvd
+
+
+def test_disable_cuda(disable_cuda):
+    with disable_cuda():
+        with disable_cuda():
+            pass

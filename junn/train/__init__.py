@@ -81,6 +81,10 @@ class Metrics(Tunable):
         return [getattr(losses, value) for value in values]
 
 
+class DatasetGenerationBenchmarkCount(Tunable):
+    default = 1000
+
+
 class Profile(Tunable):
     default = 0
 

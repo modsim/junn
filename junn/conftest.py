@@ -1,11 +1,27 @@
-# from junn.common.configure_tensorflow import configure_tensorflow
-# configure_tensorflow(0)  # very important to set allow_growth to True
+import os
+import sys
+
+if os.path.isdir('junn-predict'):
+    sys.path.insert(0, 'junn-predict')
+
+from junn_predict.common.configure_tensorflow import configure_tensorflow
+
+configure_tensorflow(0)  # very important to set allow_growth to True
+
+import warnings
+
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    import tensorflow.python.autograph.impl.api
+
+from contextlib import contextmanager
 
 import numpy as np
 import pytest
 from PIL import Image
 from roifile import ImagejRoi
 from tifffile import TiffWriter
+from tunable import Selectable, TunableManager
 
 
 def quadratic_test_image(size=512, dtype=np.uint8):
@@ -38,7 +54,17 @@ def dualpoint_roi():
     return ImagejRoi.frompoints(some_imagejroi().coordinates()[:2])
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(autouse=True)
+def reset_state():
+    TunableManager.init()
+
+    Selectable.SelectableChoice.overrides.clear()
+    Selectable.SelectableChoice.parameters.clear()
+
+    yield
+
+
+@pytest.fixture
 def empty_training_data(tmpdir_factory):
     name = str(tmpdir_factory.mktemp('training').join('train.tif'))
 
@@ -48,14 +74,15 @@ def empty_training_data(tmpdir_factory):
         tiff.save(
             image,
             resolution=(1.0 / 0.065, 1.0 / 0.065),
-            metadata=dict(unit='um'),
-            ijmetadata=dict(Overlays=[roi.tobytes() for roi in [some_imagejroi()]]),
+            metadata=dict(
+                unit='um', Overlays=[roi.tobytes() for roi in [some_imagejroi()]]
+            ),
         )
 
     return name
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def funny_tiff_file(tmpdir_factory):
     name = str(tmpdir_factory.mktemp('training').join('train.tif'))
 
@@ -65,19 +92,19 @@ def funny_tiff_file(tmpdir_factory):
         tiff.save(
             image,
             resolution=(1.0 / 0.065, 1.0 / 0.065),
-            metadata=dict(unit='um'),
-            ijmetadata=dict(
+            metadata=dict(
+                unit='um',
                 Overlays=[
                     roi.tobytes()
                     for roi in [some_imagejroi(), trackmate_roi(), dualpoint_roi()]
-                ]
+                ],
             ),
         )
 
     return name
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def empty_training_image_directory(tmpdir_factory):
     base = tmpdir_factory.mktemp('training_directory')
     name = str(base)
@@ -92,30 +119,24 @@ def empty_training_image_directory(tmpdir_factory):
     return name
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def disable_cuda():
-    import os
-    from contextlib import contextmanager
-
     @contextmanager
-    def _disable_cuda():
+    def _disable_cuda(new_value=''):
         old_value = os.environ.get('CUDA_VISIBLE_DEVICES')
-        os.environ['CUDA_VISIBLE_DEVICES'] = ''
+        os.environ['CUDA_VISIBLE_DEVICES'] = new_value
         yield
 
         if old_value:
             os.environ['CUDA_VISIBLE_DEVICES'] = old_value
+        elif old_value is None:
+            del os.environ['CUDA_VISIBLE_DEVICES']
 
-    def giver():
-        return _disable_cuda()
-
-    return giver
+    return _disable_cuda
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def tf_eager():
-    from contextlib import contextmanager
-
     import tensorflow as tf
 
     @contextmanager
@@ -125,7 +146,4 @@ def tf_eager():
         yield
         tf.config.experimental_run_functions_eagerly(old_value)
 
-    def giver(eager):
-        return _eager_change_context(eager)
-
-    return giver
+    return _eager_change_context

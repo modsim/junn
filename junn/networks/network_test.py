@@ -18,6 +18,7 @@ def network_test(net: NeuralNetwork):
         (Unet, 'recurrent_num=2', None),
         (Unet, 'residual_connections=True', None),
         (Unet, 'just_convolutions=True', None),
+        (Unet, 'no_transpose=True', None),
         (Unet, 'dropout_down=0.5', None),
         (LinkNet, '', None),
         (LinkNet, 'batch_normalization=True', None),

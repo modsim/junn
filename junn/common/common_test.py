@@ -58,14 +58,11 @@ def test_horovod_wo_gpu(disable_cuda):
     with disable_cuda():
         # TODO: this only runs properly if TF has not been imported yet
         import os
-
-        print(os.environ)
         import sys
 
-        print(sys.modules.keys())
         import tensorflow as tf
 
-        print(tf.config.get_visible_devices('GPU'))
+        # print(tf.config.get_visible_devices('GPU'))
         import junn.common.distributed
 
         junn.common.distributed.init()
@@ -154,6 +151,7 @@ def test_layer_runmodeltiled_nomodel():
         ('tversky_index', 0.0, 1.0, 0.0),
         ('tversky_index', 1.0, 0.0, 0.0),
         ('tversky_index', 1.0, 1.0, 1.0),
+        ('nan_loss', 0.0, 0.0, 'nan'),
     ],
 )
 def test_losses(loss, a, b, expected):

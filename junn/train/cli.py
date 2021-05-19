@@ -21,7 +21,7 @@ from ..datasets.tfrecord import create_example, read_junn_tfrecord
 from ..io.training import TrainingInput
 from ..networks import NeuralNetwork
 from ..networks.all import __networks__
-from . import BatchSize, ValidationSteps
+from . import BatchSize, DatasetGenerationBenchmarkCount, ValidationSteps
 
 # tqdm.tqdm()
 # from ..common.stderr_redirection import StdErrLogRedirector
@@ -68,7 +68,7 @@ def output_training_data_and_benchmark(
 
     if batch_size is None:
         batch_size = 1
-    benchmark_sample_count = 1000
+    benchmark_sample_count = DatasetGenerationBenchmarkCount.value
     log.info("Benchmark for %d samples", benchmark_sample_count)
 
     intermediate = None
