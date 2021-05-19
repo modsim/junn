@@ -8,6 +8,9 @@ import sys
 # noinspection PyProtectedMember
 from runpy import _run_module_as_main
 
+if os.path.isdir('junn-predict'):
+    sys.path.insert(0, 'junn-predict')
+
 from junn_predict.common.configure_tensorflow import get_gpu_memory_usages_megabytes
 
 base_name = 'junn'

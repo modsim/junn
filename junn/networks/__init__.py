@@ -9,6 +9,8 @@ import jsonpickle.ext.numpy as jsonpickle_numpy
 import tensorflow as tf
 import tensorflow.python.util.deprecation as deprecation
 from junn_predict.common.tensorflow_addons import try_load_tensorflow_addons
+
+try_load_tensorflow_addons()
 from keras_nvidia_statistics import NvidiaDeviceStatistics
 
 # noinspection PyPep8Naming
@@ -47,17 +49,9 @@ from .util import (
     warn_unused_arguments,
 )
 
-# noinspection PyProtectedMember
-
-
 jsonpickle_numpy.register_handlers()
 
-
-Input, Model = Input, Model
-warn_unused_arguments = warn_unused_arguments
-
-try_load_tensorflow_addons()
-
+__all__ = 'NeuralNetwork', 'Input', 'Model', 'warn_unused_arguments'
 
 # noinspection PyMethodMayBeStatic
 class NeuralNetwork(Selectable):

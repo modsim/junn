@@ -64,7 +64,7 @@ def get_keyword_arguments(func):
 def warn_unused_arguments(parameters, func, log):
     unused_arguments = set(parameters.keys()) - set(get_keyword_arguments(func))
     if unused_arguments != set():
-        log.warn(
+        log.warning(
             "Unused arguments for call %s: %s",
             func.__name__,
             ', '.join(sorted(unused_arguments)),

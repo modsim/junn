@@ -26,7 +26,10 @@ class MSD(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork)
 
         inputs = Input(self.tile_size)
 
-        outputs = msd_net(inputs, **parameters)
+        if 'tile_size' in parameters:
+            del parameters['tile_size']
+
+        outputs = msd_net(inputs, tile_size=self.tile_size, **parameters)
 
         outputs = tf.clip_by_value(outputs, 0.0, 1.0)
 
