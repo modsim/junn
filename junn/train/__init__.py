@@ -2,37 +2,37 @@ from tunable import Tunable
 
 
 class Epochs(Tunable):
-    """ Epochs to train the network """
+    """Epochs to train the network"""
 
     default = 200
 
 
 class StepsPerEpoch(Tunable):
-    """ Steps to perform per epoch (should be roughly len(datasets)/len(batchsize)) """
+    """Steps to perform per epoch (should be roughly len(datasets)/len(batchsize))"""
 
     default = 300
 
 
 class BatchSize(Tunable):
-    """ Batch size """
+    """Batch size"""
 
     default = 5
 
 
 class ValidationBatchSize(Tunable):
-    """ Validation batch size """
+    """Validation batch size"""
 
     default = 5
 
 
 class ValidationSteps(Tunable):
-    """ Steps of validation """
+    """Steps of validation"""
 
     default = 50
 
 
 class Optimizer(Tunable):
-    """ Optimizer """
+    """Optimizer"""
 
     default = "Adam"
 
@@ -42,20 +42,20 @@ class Optimizer(Tunable):
 
 
 class LearningRate(Tunable):
-    """ Learning rate """
+    """Learning rate"""
 
     # default = 0.001
     default = 1.0e-5
 
 
 class Momentum(Tunable):
-    """ SGD optimizer momentum """
+    """SGD optimizer momentum"""
 
     default = 0.0
 
 
 class Decay(Tunable):
-    """ SGD optimizer decay """
+    """SGD optimizer decay"""
 
     default = 0.0
 
@@ -108,30 +108,30 @@ class PreprocessingMapParallel(Tunable):
 
 
 class TensorBoardHistogramFrequency(Tunable):
-    """  """
+    """ """
 
     default = 0
 
 
 class TensorBoardWriteGradients(Tunable):
-    """  """
+    """ """
 
     default = False
 
 
 class WriteLearningCSV(Tunable):
-    """ If set, write to this file CSV log containing learning information """
+    """If set, write to this file CSV log containing learning information"""
 
     default = ""
 
 
 class TensorBoardSegmentationDataset(Tunable):
-    """ Perform a test segmentation with this TIFF file and add the output to TensorBoard """
+    """Perform a test segmentation with this TIFF file and add the output to TensorBoard"""
 
     default = ""
 
 
 class TensorBoardSegmentationEpochs(Tunable):
-    """ Perform a test segmentation every n epochs and add the output to TensorBoard """
+    """Perform a test segmentation every n epochs and add the output to TensorBoard"""
 
     default = 10

@@ -60,6 +60,13 @@ def tiff_peek(file_name_or_tiff):
 
 
 def guess_frame_identifier(all_overlays):
+    """
+    ImageJ ROIs can store the (temporal) frame number in different attributes depending on the (hyper)stack type.
+    Tries to guess the right attribute which identifies the frame.
+
+    :param all_overlays: List of overlays
+    :return: 't_position' or 'position'
+    """
     return (
         't_position'
         if (np.array([overlay.position for overlay in all_overlays]) == 0).all()
@@ -103,6 +110,7 @@ def tiff_masks(
 ):
     """
     Generator, reads a TIFF file with ImageJ ROIs, and yields tuples of image, mask per frame.
+
     :param file_name:
     :param background:
     :param foreground:

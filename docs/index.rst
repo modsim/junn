@@ -1,21 +1,22 @@
-# Welcome to JUNN's documentation!
+Welcome to JUNN's documentation!
+================================
 
-See [readme](readme.rst) for information.
+See :doc:`readme` for information.
 
-## Indices and tables
+Indices and tables
+==================
 
-```eval_rst
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-```
 
-## Contents:
+Contents:
+=========
 
-```eval_rst
 .. toctree::
     :maxdepth: 4
 
-    readme.rst
-    concepts.rst
-```
+    readme
+    concepts
+    junn
+    junn_predict
