@@ -1,3 +1,4 @@
+"""Mixin to handle multichannel images."""
 import tensorflow as tf
 
 from ...io import REGION_FOREGROUND
@@ -5,7 +6,9 @@ from .tile_based_network import TilebasedNetwork
 
 
 class MultichannelHandling(TilebasedNetwork, TilebasedNetwork.Virtual):
-    def get_training_fn(self, validation: bool = False):
+    """Mixin to handle multichannel images."""
+
+    def get_training_fn(self, validation: bool = False):  # noqa: D102
         parent_fn = super().get_training_fn(validation=validation)
 
         @tf.function
@@ -46,7 +49,7 @@ class MultichannelHandling(TilebasedNetwork, TilebasedNetwork.Virtual):
 
         return _inner
 
-    def get_prediction_fn(self):
+    def get_prediction_fn(self):  # noqa: D102
         parent_fn = super().get_prediction_fn()
 
         output_channels = (
@@ -81,7 +84,7 @@ class MultichannelHandling(TilebasedNetwork, TilebasedNetwork.Virtual):
         else:
             return parent_fn
 
-    def get_loss(self):
+    def get_loss(self):  # noqa: D102
         output_channels = (
             self.parameters['output_channels']
             if 'output_channels' in self.parameters
@@ -89,7 +92,7 @@ class MultichannelHandling(TilebasedNetwork, TilebasedNetwork.Virtual):
         )
 
         if output_channels > 1:
-            from ...common.losses import dice_loss, dice_loss_unclipped
+            from ...common.losses import dice_loss  # , dice_loss_unclipped
 
             return dice_loss  # dice_loss_unclipped
         else:

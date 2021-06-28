@@ -1,3 +1,4 @@
+"""Mixin helper to create DeepImageJ compatible metadata."""
 import datetime
 import os
 from functools import reduce
@@ -9,6 +10,12 @@ from ...common import distributed
 
 
 def serialize_value(value):
+    """
+    Serialize a value in an DeepImageJ XML compatible manner.
+
+    :param value:
+    :return:
+    """
     if isinstance(value, bool):
         return str(value).lower()
     else:
@@ -16,6 +23,13 @@ def serialize_value(value):
 
 
 def serialize_xml(the_dict):
+    """
+    Serialize a dictionary into a XML structure.
+
+    :param the_dict:
+    :return:
+    """
+
     def _inner(inner_dict, level=0):
         return ''.join(
             reduce(
@@ -48,12 +62,21 @@ def serialize_xml(the_dict):
 
 
 def write_to(file_name, data):
+    """
+    Write text to a file.
+
+    :param file_name:
+    :param data:
+    :return:
+    """
     with open(file_name, 'w+') as fp:
         fp.write(data)
 
 
 class DeepImageJCompatibilityMixin:
-    def save_model(self):
+    """Mixin to give DeepImageJ metadata writing."""
+
+    def save_model(self):  # noqa: D102
         if not distributed.is_rank_zero():  # only rank zero may save
             return
 
@@ -62,7 +85,8 @@ class DeepImageJCompatibilityMixin:
         # signature_to_export = self.signatures[self.PREDICTION_SIGNATURE]
 
         # name_input = signature_to_export.input_signature[0].name
-        # name_output = signature_to_export.get_concrete_function().outputs[0].name  # no?
+        # name_output = signature_to_export.get_concrete_function(
+        # ).outputs[0].name  # no?
 
         now = datetime.datetime.now().isoformat()
         name = os.path.basename(self.model_path)

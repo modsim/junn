@@ -1,6 +1,9 @@
+"""The training cli module."""
 import logging
 import os
 import sys
+from argparse import ArgumentParser
+from typing import List, Optional, Tuple
 
 import jsonpickle
 import numpy as np
@@ -8,6 +11,7 @@ import numpy as np
 # isort: off
 from junn_predict.common import autoconfigure_tensorflow
 import tensorflow as tf
+
 # isort: on
 import tqdm
 from junn_predict.common.cli import get_common_argparser_and_setup
@@ -41,20 +45,45 @@ LOG_FILE_PATTERN = 'junn.{pid}.log'
 log = logging.getLogger(__name__)
 
 
-def pad_to(input_, target_shape):
+def pad_to(input_: np.ndarray, target_shape: Tuple[int, ...]) -> np.ndarray:
+    """
+    Pad the argument to have target_shape.
+
+    :param input_:
+    :param target_shape:
+    :return:
+    """
     pad = [[0, ts - is_] for is_, ts in zip(input_.shape, target_shape)]
     return np.pad(input_, pad)
 
 
-def pad_all_arrays_to_largest(*args):
+def pad_all_arrays_to_largest(*args: np.ndarray) -> List[np.ndarray]:
+    """
+    Pad all arguments to equal the size of the largest argument.
+
+    :param args:
+    :return:
+    """
     sizes = np.array([arg.shape for arg in args])
     sizes = sizes.max(axis=0, initial=0)
     return [pad_to(arg, sizes) for arg in args]
 
 
 def output_training_data_and_benchmark(
-    output_dataset, output_dataset_count, nn, dataset
-):
+    output_dataset: str,
+    output_dataset_count: int,
+    nn: NeuralNetwork,
+    dataset: tf.data.Dataset,
+) -> None:
+    """
+    Benchmark and write samples of prepared training data to a TIFF file.
+
+    :param output_dataset: TIFF file to write to
+    :param output_dataset_count: Count to write
+    :param nn: NeuralNetwork instance with the input data pipeline
+    :param dataset: Dataset providing training data
+    :return:
+    """
     if not distributed.is_rank_zero():
         return
 
@@ -113,7 +142,13 @@ def output_training_data_and_benchmark(
             n += 1
 
 
-def set_delayed_logger_filename(model_directory):
+def set_delayed_logger_filename(model_directory: str) -> None:
+    """
+    Add the delayed logger with a model as target for log files.
+
+    :param model_directory: Model path
+    :return:
+    """
     root_logger = logging.getLogger()
     for handler in root_logger.handlers:
         if isinstance(handler, DelayedFileLog):
@@ -127,17 +162,18 @@ def set_delayed_logger_filename(model_directory):
             break
 
 
-def main(args=None):
-    if args is None:
-        args = sys.argv[1:]
+def add_argparser_arguments(parser: ArgumentParser) -> ArgumentParser:
+    """
+    Add the training-specific arguments to the argparser instance.
 
-    # StdErrLogRedirector.stop_redirect()
-    args, parser = get_common_argparser_and_setup(args=args)
-
+    :param parser:
+    :return:
+    """
     parser.add_argument(
         '--deterministic', dest='deterministic', default=False, action='store_true'
     )
-    # parser.add_argument('--validation', dest='validation', type=str, help="validation datasets", action='append')
+    # parser.add_argument('--validation', dest='validation', type=str,
+    # help="validation datasets", action='append')
     parser.add_argument(
         '--resume',
         dest='resume',
@@ -180,6 +216,23 @@ def main(args=None):
         action='store_false',
         default=True,
     )
+    return parser
+
+
+def main(args: Optional[List[str]] = None) -> None:
+    """
+    JUNN training main entrypoint.
+
+    :param args: Optional command line arguments, if ``None``, ``sys.argv`` will be used.
+    :return:
+    """
+    if args is None:
+        args = sys.argv[1:]
+
+    # StdErrLogRedirector.stop_redirect()
+    args, parser = get_common_argparser_and_setup(args=args)
+
+    add_argparser_arguments(parser)
 
     args = parser.parse_args(args=args)
 
@@ -188,7 +241,8 @@ def main(args=None):
 
     if args.deterministic:
         log.info(
-            "Deterministic training is currently not working. Setting up as much determinism as possible, tho."
+            "Deterministic training is currently not working. "
+            "Setting up as much determinism as possible, tho."
         )
         os.environ['TF_DETERMINISTIC_OPS'] = '1'
         os.environ['HOROVOD_FUSION_THRESHOLD'] = '0'
@@ -276,6 +330,7 @@ def main(args=None):
         dataset, training=True, validation=False, batch=BatchSize.value, skip_raw=True
     )
 
+    # TODO: Re-enable the validation code
     validation = None
     if validation:
         validation = nn.prepare_input(
@@ -292,7 +347,8 @@ def main(args=None):
     log.info("Starting training ...")
     if distributed.is_rank_zero():
         log.info(
-            "You can investigate metrics using tensorboard, run:\npython -m tensorboard.main --logdir \"%s\"",
+            "You can investigate metrics using tensorboard, run:\n"
+            "python -m tensorboard.main --logdir \"%s\"",
             os.path.abspath(args.model),
         )
 
@@ -316,20 +372,45 @@ def main(args=None):
         IPython.embed()
 
 
-def get_embedded_dataset_filename(model_name):
+def get_embedded_dataset_filename(model_name: str) -> str:
+    """
+    Return the path of an embedded dataset in a model.
+
+    :param model_name: Model path
+    :return: path to the embedded dataset as string
+    """
     return os.path.join(model_name, TRAINING_DATA_DIR, TRAINING_DATA_TFRECORD)
 
 
-def embedded_dataset_exists(model_name):
+def embedded_dataset_exists(model_name: str) -> bool:
+    """
+    Check whether a model contains an embedded dataset.
+
+    :param model_name: Model path
+    :return: True or False
+    """
     return os.path.isfile(get_embedded_dataset_filename(model_name))
 
 
-def load_embedded_dataset(model_name):
+def load_embedded_dataset(model_name: str) -> tf.data.Dataset:
+    """
+    Load an embedded dataset from a model.
+
+    :param model_name: Model path
+    :return: the dataset
+    """
     return read_junn_tfrecord(get_embedded_dataset_filename(model_name))
 
 
-def write_embedded_dataset(model_name, dataset):
-    training_data_directory, metadata_file = (
+def write_embedded_dataset(model_name: str, dataset: tf.data.Dataset) -> None:
+    """
+    Embed a dataset into a model.
+
+    :param model_name: Model path
+    :param dataset: Dataset
+    :return: None
+    """
+    training_data_directory, metadata_file = (  # noqa: F841
         os.path.join(model_name, TRAINING_DATA_DIR),
         None,  # os.path.join(args.model, TRAINING_DATA_DIR, TRAINING_DATA_METADATA),
     )
@@ -347,31 +428,3 @@ def write_embedded_dataset(model_name, dataset):
         with tf.io.TFRecordWriter(tfrecord_file, tfr_options) as writer:
             for x, y in dataset:
                 writer.write(create_example(x, y))
-
-
-experimental_things = """
-# profiler needs either root access or GPU driver set to allow regular users to access performance counters
-# https://developer.nvidia.com/nvidia-development-tools-solutions-ERR_NVGPUCTRPERM-permission-issue-performance-counters
-# TODO add an argument to allow profiling!
-# from tensorflow.python.eager.profiler import start_profiler_server
-# start_profiler_server(6009)
-
-# # tf debugging looks interesting, but appears removed in TF2?
-# if True:
-#     from tensorflow.python import debug as tf_debug
-#     from tensorflow.keras import backend as K
-#     K.set_session(tf_debug.TensorBoardDebugWrapperSession(tf.Session(), 'localhost:7777'))
-
-# so this is actually making it slower
-# noinspection PyUnreachableCode
-if False:
-    tf.config.optimizer.set_jit(True)  # its lacking some ops where I don't really know at which point they are added?
-
-# lets try float16
-# noinspection PyUnreachableCode
-if False:
-    # this currently doesn't work. although it should.
-    loss_scale = 'dynamic'
-    policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16', loss_scale=loss_scale)
-    tf.keras.mixed_precision.experimental.set_policy(policy)
-"""

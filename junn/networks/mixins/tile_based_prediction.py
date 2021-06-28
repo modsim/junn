@@ -1,10 +1,13 @@
+"""Tile-based prediction mixin."""
 import tensorflow as tf
 
 from junn.common.layers.run_model_layer import RunModelTiled
 
 
 class TilebasedPredictionMixin:
-    def get_prediction_fn(self):
+    """Tile-based prediction mixin for NeuralNetwork s."""
+
+    def get_prediction_fn(self):  # noqa: D102
         model = self.model
         tile_size = self.tile_size
 

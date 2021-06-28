@@ -1,4 +1,4 @@
-""" JUNN, the Jülich U-Net Neural Network Segmentation Toolkit """
+"""JUNN, the Jülich U-Net Neural Network Segmentation Toolkit."""
 
 __project__ = 'JUNN'
 

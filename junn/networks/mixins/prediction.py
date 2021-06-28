@@ -1,8 +1,11 @@
+"""Prediction signatures mixin."""
 import tensorflow as tf
 
 
 class PredictionSignatureMixin:
-    def get_signatures(self):
+    """Prediction singatures mixin for NeuralNetwork s."""
+
+    def get_signatures(self):  # noqa: D102
         predict = self.prediction_fn
 
         signatures = {}

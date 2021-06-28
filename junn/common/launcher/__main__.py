@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""The launcher main entry point."""
 
 import glob
 import os
@@ -18,6 +19,11 @@ memory_usage_warning_threshold = 0.9
 
 
 def get_possible_commands():
+    """
+    Search the package for __main__ modules.
+
+    :return:
+    """
     base_directory = osp.dirname(osp.dirname(osp.realpath(__file__)))
 
     base_directory = osp.dirname(base_directory)
@@ -38,6 +44,11 @@ def get_possible_commands():
 
 
 def print_possible_commands():
+    """
+    Print possible subcommands found in the package.
+
+    :return:
+    """
     print("Possible commands:")
     print()
 
@@ -52,6 +63,11 @@ def print_possible_commands():
 
 
 def get_gpu_memory_usage_fractions():
+    """
+    Get the fractions of used GPU memory.
+
+    :return:
+    """
     return [
         used / total if total else 0.0
         for used, total in get_gpu_memory_usages_megabytes()
@@ -59,21 +75,28 @@ def get_gpu_memory_usage_fractions():
 
 
 def get_mean_gpu_memory_usage_fraction():
+    """
+    Get mean memory fraction of GPU memory usage.
+
+    :return:
+    """
     memory_usages = get_gpu_memory_usage_fractions()
     return sum(memory_usages) / len(memory_usages)
 
 
 def main():
     """
-    This is the launcher main(). It will look for callable (i.e. __main__.py containing) sub-modules and offer them
-    as choices to run. If an argument is passed, it tries to call them. Furthermore it has two additional
-    functions: If '-nogpu' is passed, it will disable GPU usage via CUDA_VISIBLE_DEVICES environment variable,
-    and it will warn if the GPU is to be used, but its memory is more than 90% full (which likely means,
-    another process is still using it).
+    Run the launcher.
+
+    It will look for callable (i.e. __main__.py containing) sub-modules and offer them
+    as choices to run. If an argument is passed, it tries to call them.
+    Furthermore it has two additional functions: If '-nogpu' is passed,
+    it will disable GPU usage via CUDA_VISIBLE_DEVICES environment variable,
+    and it will warn if the GPU is to be used, but its memory is more than 90% full
+    (which likely means, another process is still using it).
 
     :return:
     """
-
     if len(sys.argv) == 1:
         return print_possible_commands()
 
@@ -88,7 +111,8 @@ def main():
         and get_mean_gpu_memory_usage_fraction() > memory_usage_warning_threshold
     ):
         print(
-            "More than %.2f%% of GPU memory used, likely some other process is still using the GPU!"
+            "More than %.2f%% of GPU memory used, "
+            "likely some other process is still using the GPU!"
             % (memory_usage_warning_threshold * 100.0)
         )
 

@@ -1,3 +1,5 @@
+"""LinkNet module containing the LinkNet network class for use within JUNN."""
+
 import tensorflow as tf
 
 from . import Input, Model, warn_unused_arguments
@@ -8,7 +10,9 @@ from .mixins.tile_based_network import TilebasedNetwork
 
 
 class LinkNet(DiceLoss, PerImageStandardizationPreprocessingMixin, TilebasedNetwork):
-    def get_model(self):
+    """The LinkNet Network class."""
+
+    def get_model(self):  # noqa: D102
         parameters = dict(
             # defaults
         )

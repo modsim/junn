@@ -1,3 +1,4 @@
+"""Helper functionality to read and write ``.tfrecord`` files."""
 import tensorflow as tf
 
 """
@@ -23,7 +24,8 @@ parse_tensor_type_lookup = {
 @tf.function
 def get_tensor_magic_number(tensor):
     """
-    Returns the type identifier of a serialized TensorFlow tensor proto.
+    Return the type identifier of a serialized TensorFlow tensor proto.
+
     :param tensor:
     :return:
     """
@@ -34,7 +36,10 @@ def get_tensor_magic_number(tensor):
 @tf.function
 def parse_tensor(tensor, coerce):
     """
-    Parses a binary tensor containing a serialized tensor proto to a Tensor, coercing it into a specific type.
+    Parse a binary tensor containing a serialized tensor proto to a Tensor.
+
+    Coercing it into a specific type.
+
     :param tensor:
     :param coerce:
     :return:
@@ -55,7 +60,7 @@ def parse_tensor(tensor, coerce):
 
 def create_example(x, y):
     """
-    Creates an tf.train.Example with JUNN-convention contents.
+    Create an ``tf.train.Example`` with JUNN-convention contents.
 
     :param x:
     :param y:
@@ -79,7 +84,8 @@ def create_example(x, y):
 
 def read_junn_tfrecord(file_name):
     """
-    Reads a .tfrecord file following JUNN convention and yields Dataset
+    Read a ``.tfrecord`` file following JUNN convention and yields Dataset.
+
     :param file_name:
     :return:
     """

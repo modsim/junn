@@ -4,6 +4,7 @@ import os
 from urllib.parse import urlparse, urlunparse
 
 import numpy as np
+import pilyso_io.imagestack.readers
 import tqdm
 from pilyso_io.imagestack import (
     Dimensions,
@@ -11,16 +12,16 @@ from pilyso_io.imagestack import (
     parse_range,
     prettify_numpy_array,
 )
-from pilyso_io.imagestack.readers import *
 from roifile import ImagejRoi
-from tifffile import TiffWriter
 
-from ..common import LazyContextManager
 from ..common.cli import get_common_argparser_and_setup
 from ..common.timed import Timed
 from .connectors import HTTPConnector, suggest_connector
-from .connectors.model_connector import ModelConnector
+
+# from .connectors.model_connector import ModelConnector
 from .detectors import ROIDetector
+
+pilyso_io.imagestack.readers = pilyso_io.imagestack.readers
 
 log = logging.getLogger(__name__)
 
@@ -94,7 +95,8 @@ def prepare_inputs_outputs(args):
 
     if not inputs_outputs:
         log.error(
-            "Nothing to do. (Maybe all outputs already existed and --overwrite was not passed?)"
+            "Nothing to do. "
+            "(Maybe all outputs already existed and --overwrite was not passed?)"
         )
 
     return inputs_outputs
@@ -180,7 +182,7 @@ class OutputWriter:
     calibration = 1.0
     name = ''
 
-    progress = lambda _: _
+    progress = lambda _: _  # noqa: E731
 
     def __init__(self, name, calibration=1.0):
         self.name = name

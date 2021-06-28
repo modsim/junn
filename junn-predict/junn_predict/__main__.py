@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+"""JUNN prediction entrypoint."""
 
 from .predict.__main__ import main
 

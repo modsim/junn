@@ -20,3 +20,4 @@ Contents:
     concepts
     junn
     junn_predict
+    LICENSE

@@ -171,7 +171,7 @@ def prepare_rst_content(submodule, submodules):
         ]
     )
 
-    subpackages_block = f"""Subpackages
+    subpackages_block = """Subpackages
 -----------
 
 .. toctree::
@@ -194,7 +194,7 @@ def prepare_rst_content(submodule, submodules):
     ]
 
     if len(subsubmodules):
-        result += f"""
+        result += """
 Submodules
 ----------
     """

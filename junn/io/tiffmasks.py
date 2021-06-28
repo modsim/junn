@@ -1,3 +1,4 @@
+"""Helpers to generate masks from ImageJ TIFF files."""
 from collections import namedtuple
 
 import numpy as np
@@ -43,12 +44,11 @@ def _inner_tiff_peek(tiff):
 
 def tiff_peek(file_name_or_tiff):
     """
-    Fetches some information about a tiff file and returns a TiffInfo named tuple.
+    Fetch some information about a TIFF file and returns a TiffInfo named tuple.
 
     :param file_name_or_tiff:
     :return:
     """
-
     if isinstance(file_name_or_tiff, TiffFile):
         return _inner_tiff_peek(file_name_or_tiff)
     else:
@@ -61,8 +61,10 @@ def tiff_peek(file_name_or_tiff):
 
 def guess_frame_identifier(all_overlays):
     """
-    ImageJ ROIs can store the (temporal) frame number in different attributes depending on the (hyper)stack type.
-    Tries to guess the right attribute which identifies the frame.
+    Guess the right attribute which identifies the frame.
+
+    ImageJ ROIs can store the (temporal) frame number in different
+    attributes depending on the (hyper)stack type.
 
     :param all_overlays: List of overlays
     :return: 't_position' or 'position'
@@ -93,6 +95,12 @@ def _get_overlays(all_overlays):
 
 
 def tiff_to_array(tiff):
+    """
+    Open a TIFF file as an array, normalizing the dimensions.
+
+    :param tiff: Filename
+    :return:
+    """
     array = (
         tiff.asarray(out='memmap') if tiff.pages[0].is_memmappable else tiff.asarray()
     )
@@ -109,7 +117,7 @@ def tiff_masks(
     skip_empty=False,
 ):
     """
-    Generator, reads a TIFF file with ImageJ ROIs, and yields tuples of image, mask per frame.
+    Read a TIFF file with ImageJ ROIs, generate and yield tuples of image and mask.
 
     :param file_name:
     :param background:
@@ -118,7 +126,6 @@ def tiff_masks(
     :param skip_empty:
     :return:
     """
-
     if isinstance(file_name, bytes):  # why?!
         file_name = file_name.decode('utf8')
 
@@ -160,6 +167,15 @@ def tiff_masks(
 
 
 def draw_overlays(overlays, buffer, foreground=REGION_FOREGROUND, border=REGION_BORDER):
+    """
+    Draws overlays onto a pre-allocated buffer.
+
+    :param overlays: Iterable of overlays
+    :param buffer: Buffer to draw unto
+    :param foreground: Foreground value to use
+    :param border: Border value to use
+    :return:
+    """
     foregrounds = np.zeros(buffer.shape, dtype=bool)
     borders = np.zeros(buffer.shape, dtype=bool)
 

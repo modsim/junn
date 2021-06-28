@@ -1,3 +1,4 @@
+"""Tile-based training functionality."""
 import tensorflow as tf
 import tensorflow_addons as tfa
 
@@ -33,7 +34,9 @@ from .augmentation import (
 
 
 class TilebasedTrainingMixin:
-    def get_training_fn(self, validation: bool = False):
+    """Tile-based training mixin."""
+
+    def get_training_fn(self, validation: bool = False):  # noqa: D102
         tile_size = self.tile_size
         factor = 2
         big_block = (
@@ -53,9 +56,11 @@ class TilebasedTrainingMixin:
 
             image, labels = tf.cast(image, tf.float32), tf.cast(labels, tf.float32)
 
-            # resize image and labels to larger (ie. big_block) size, so we have enough data to work with
+            # resize image and labels to larger (ie. big_block) size,
+            # so we have enough data to work with
 
-            # TODO: This fails if the input data is smaller than the tile size! (or smaller than twice the tile size?)
+            # TODO: This fails if the input data is smaller than the tile size!\
+            #  (or smaller than twice the tile size?)
 
             image, labels = pad_to(image, big_block), pad_to(labels, big_block)
 
@@ -71,7 +76,8 @@ class TilebasedTrainingMixin:
                 )
 
             # blur
-            # this could be done with tfa.image.gaussian_filter2d, but in first tests, it was slower
+            # this could be done with \
+            # tfa.image.gaussian_filter2d, but in first tests, it was slower
             if random_float(seed=20) < BlurProbability.value:
                 gaussian_kernel_n = tf.random.uniform(
                     shape=[],

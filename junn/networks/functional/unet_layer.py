@@ -1,3 +1,4 @@
+"""Functional definitions for the U-Net."""
 from functools import partial
 
 from tensorflow.keras.layers import (
@@ -16,14 +17,22 @@ from tensorflow.keras.layers import (
 
 
 class RecurrentConvolution2D(Layer):
+    """A recurrent convolution layer."""
+
     def __init__(self, recurrent_num=1, **kwargs):
+        """
+        Initialize the layer.
+
+        :param recurrent_num: Count of recurrent convolutions to apply.
+        :param kwargs:
+        """
         super(RecurrentConvolution2D, self).__init__()
 
         self.recurrent_num = recurrent_num
         self.initial_conv = Conv2D(**kwargs)
         self.recurrent_conv = Conv2D(**kwargs)
 
-    def get_config(self):
+    def get_config(self):  # noqa: D102
         config = super().get_config().copy()
 
         config['recurrent_num'] = self.recurrent_num
@@ -31,6 +40,13 @@ class RecurrentConvolution2D(Layer):
         return config
 
     def call(self, inputs, **kwargs):
+        """
+        Run by Keras when constructing the layer.
+
+        :param inputs:
+        :param kwargs:
+        :return:
+        """
         output = self.initial_conv(inputs)
 
         for _ in range(self.recurrent_num):
@@ -50,7 +66,20 @@ def unet_unit(
     residual_connections=False,
     dropout=0.0,
 ):
+    """
+    Generate a U-Net unit.
 
+    :param tensor:
+    :param filters:
+    :param kernel_size:
+    :param activation:
+    :param batch_normalization:
+    :param name:
+    :param recurrent_num:
+    :param residual_connections:
+    :param dropout:
+    :return:
+    """
     parameters = dict(
         filters=filters, kernel_size=kernel_size, padding='same', activation=activation
     )
@@ -117,6 +146,25 @@ def unet_level(
     recurrent_num=0,
     name='unet',
 ):
+    """
+    Generate a U-Net level.
+
+    :param tensor:
+    :param filters:
+    :param level:
+    :param level_factor:
+    :param total_levels:
+    :param dropout_up:
+    :param dropout_down:
+    :param just_convolutions:
+    :param activation:
+    :param batch_normalization:
+    :param kernel_size:
+    :param residual_connections:
+    :param recurrent_num:
+    :param name:
+    :return:
+    """
     configured_unet_unit = partial(
         unet_unit,
         filters=filters,
@@ -209,7 +257,29 @@ def unet(
     no_transpose=False,
     **kwargs
 ):
+    """
+    Generate a U-Net.
 
+    :param input_tensor:
+    :param levels:
+    :param filters:
+    :param activation:
+    :param output_channels:
+    :param dropout_down:
+    :param dropout_up:
+    :param just_convolutions:
+    :param batch_normalization:
+    :param kernel_size:
+    :param residual_connections:
+    :param level_factor:
+    :param last_activation:
+    :param recurrent_num:
+    :param name:
+    :param categorical:
+    :param no_transpose:
+    :param kwargs:
+    :return:
+    """
     if (
         last_activation is None
     ):  # set defaults, only last_activation is dependent on categorical

@@ -1,3 +1,4 @@
+"""Weightes loss mixin."""
 import tensorflow as tf
 
 from ...common.functions import convolve, get_gaussian_kernel
@@ -8,6 +9,16 @@ from .tile_based_network import TilebasedNetwork
 def calculate_weightmap(
     image, sigma=3.5, overlap_ratio=2.5, inner_ratio=0.75, empty=0.25
 ):
+    """
+    Calculate a weight map by blurring the border regions.
+
+    :param image:
+    :param sigma:
+    :param overlap_ratio:
+    :param inner_ratio:
+    :param empty:
+    :return:
+    """
     blurred = convolve(image, get_gaussian_kernel(sigma))
     weightmap = (
         (1 - image) * overlap_ratio * blurred
@@ -19,6 +30,13 @@ def calculate_weightmap(
 
 @tf.function
 def split_weight_off(raw_y_true, y_pred):
+    """
+    Detach weights off a tensor again.
+
+    :param raw_y_true:
+    :param y_pred:
+    :return:
+    """
     size = tf.shape(raw_y_true)[1]
 
     y_true = raw_y_true[:, : size // 2, :, :]
@@ -28,7 +46,9 @@ def split_weight_off(raw_y_true, y_pred):
 
 
 class WeightedLoss(TilebasedNetwork, TilebasedNetwork.Virtual):
-    def get_training_fn(self, validation: bool = False):
+    """WeightedLoss mixin for NeuralNetwork s."""
+
+    def get_training_fn(self, validation: bool = False):  # noqa: D102
         parent_fn = super().get_training_fn(validation=validation)
 
         weighted_loss = (
@@ -52,7 +72,7 @@ class WeightedLoss(TilebasedNetwork, TilebasedNetwork.Virtual):
         else:
             return parent_fn
 
-    def get_loss(self):
+    def get_loss(self):  # noqa: D102
         weighted_loss = (
             self.parameters['weighted_loss']
             if 'weighted_loss' in self.parameters
@@ -71,7 +91,7 @@ class WeightedLoss(TilebasedNetwork, TilebasedNetwork.Virtual):
         else:
             return super().get_loss()
 
-    def get_metrics(self):
+    def get_metrics(self):  # noqa: D102
         weighted_loss = (
             self.parameters['weighted_loss']
             if 'weighted_loss' in self.parameters

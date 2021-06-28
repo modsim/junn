@@ -1,7 +1,14 @@
+"""Helper functions to dynamically load TensorFlow Addons."""
 import warnings
 
 
-def try_load_tensorflow_addons():
+def try_load_tensorflow_addons() -> None:
+    """
+    Load the TensorFlow Addons module, if present.
+
+    Will ignore any compatibility warnings, and loads
+    all tfa activations into the normal namespace.
+    """
     try:
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')

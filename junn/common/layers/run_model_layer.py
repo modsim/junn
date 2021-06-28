@@ -1,10 +1,13 @@
+"""Layer to run a model in a tiled manner."""
 import tensorflow as tf
 from tensorflow.python.keras.layers import Layer
 
 
 class RunModelTiled(Layer):
     """
-    Runs a model with a fixed input size in a tiled manner over the (larger) input tensor (image).
+    Run a model in a tiled manner.
+
+    With a fixed input size in a tiled manner over the (larger) input tensor (image).
     """
 
     def __init__(
@@ -25,6 +28,7 @@ class RunModelTiled(Layer):
     ):
         """
         Instantiate the layer.
+
         :param model: Keras model
         :param block_size: block size (n, m)
         :param overlap: overlap (n, m)
@@ -55,7 +59,8 @@ class RunModelTiled(Layer):
     @staticmethod
     def _pad_to(tensor, first_dim):
         """
-        Helper function to pad a tensor.
+        Pad a tensor.
+
         :param tensor:
         :param first_dim:
         :return:
@@ -76,6 +81,7 @@ class RunModelTiled(Layer):
     def call(self, raw_input_tensor, **kwargs):
         """
         Inner function called by Keras.
+
         :param raw_input_tensor:
         :param kwargs:
         :return:
@@ -241,9 +247,12 @@ class RunModelTiled(Layer):
                 reshaped_result, self.block_size, crops=crops
             )
         else:
-            # TODO: this does not 100% make sense, since apparently at some point W/H are swapped in some of the tf ops
-            # crop_dim_1 = ((raw_input_tensor_shape[1] % (self.block_size[0] - self.overlap[0])) - self.overlap[0]) // 2
-            # crop_dim_2 = ((raw_input_tensor_shape[2] % (self.block_size[1] - self.overlap[1])) - self.overlap[1]) // 2
+            # TODO: this does not 100% make sense, since apparently at \
+            #  some point W/H are swapped in some of the tf ops
+            # crop_dim_1 = ((raw_input_tensor_shape[1] %
+            #   (self.block_size[0] - self.overlap[0])) - self.overlap[0]) // 2
+            # crop_dim_2 = ((raw_input_tensor_shape[2] %
+            #   (self.block_size[1] - self.overlap[1])) - self.overlap[1]) // 2
             # TODO: surprise: it's not working...
             # TODO: or does it? 2020-01-06
             # <--

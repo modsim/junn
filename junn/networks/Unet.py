@@ -1,3 +1,4 @@
+"""Unet module containing the U-Net network class for use within JUNN."""
 from . import Input, Model, warn_unused_arguments
 from .functional.unet_layer import unet
 from .mixins.losses import DiceLoss
@@ -14,7 +15,9 @@ class Unet(
     PerImageStandardizationPreprocessingMixin,
     TilebasedNetwork,
 ):
-    def get_model(self):
+    """The U-Net Network class."""
+
+    def get_model(self):  # noqa: D102
         parameters = dict(
             # defaults
         )

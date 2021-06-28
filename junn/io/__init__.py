@@ -1,3 +1,4 @@
+"""Input/output module."""
 REGION_BACKGROUND = 0
 REGION_FOREGROUND = 1
 REGION_BORDER = 2

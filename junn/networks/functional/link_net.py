@@ -1,12 +1,10 @@
+"""Functional definitions for the LinkNet."""
 from tensorflow.keras.layers import (
-    Activation,
     Add,
     BatchNormalization,
     Conv2D,
     Conv2DTranspose,
     MaxPooling2D,
-    Reshape,
-    concatenate,
 )
 
 
@@ -20,7 +18,7 @@ def link_net(
     **kwargs
 ):
     """
-    A LinkNet according to
+    Create a LinkNet.
 
     LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation
     by A. Chaurasia and E. Culurciello. arXiv 1707.03718
@@ -29,16 +27,17 @@ def link_net(
     :param activation: Activation used for each convolution layer
     :param last_activation: Final activation used
     :param batch_normalization:
-    :param categorical: Whether the output should be categorical (multiple channels) or a single channel
+    :param categorical: Whether the output should be categorical \
+    (multiple channels) or a single channel
     :param output_channels: Count of output channels (i.e. classes)
     :param kwargs:
     :return:
     """
-
     if categorical:
         raise NotImplementedError('categorical prediction currently not implemented.')
 
-    # having a up-sample as a very late step leads to 2x2 blocked images, which is too imprecise for our usage
+    # having a up-sample as a very late step leads to 2x2 blocked images,
+    # which is too imprecise for our usage
 
     depths = {
         1: dict(m=64, n=64),
@@ -151,7 +150,8 @@ def link_net(
 
     tensor = inner_pair(tensor, depth=min_depth)
 
-    # they differentiate between full conv. (apparently, input=output size) and convolution (apparently mode=valid)
+    # they differentiate between full conv. (apparently, input=output size)
+    # and convolution (apparently mode=valid)
     # we only do full convolutions in the code here
 
     tensor = Conv2DTranspose(
@@ -173,12 +173,15 @@ def link_net(
     )(tensor)
     result = tensor
 
-    #                concatenate(last_tensors) if len(last_tensors) > 1 else last_tensors[0]
+    #                concatenate(last_tensors) if len(last_tensors
+    #                ) > 1 else last_tensors[0]
 
     # if not categorical:
-    #     result = Conv2D(filters=output_channels, kernel_size=1, activation=last_activation)(combined)
+    #     result = Conv2D(filters=output_channels, kernel_size=1,
+    #     activation=last_activation)(combined)
     # else:
-    #     result = Conv2D(filters=output_channels, kernel_size=1, activation='linear')(combined)
+    #     result = Conv2D(filters=output_channels, kernel_size=1,
+    #     activation='linear')(combined)
     #     result = Reshape((tile_size[0] * tile_size[1], output_channels))(result)
     #     result = Activation(last_activation)(result)
     #     result = Reshape(tile_size + (output_channels,))(result)

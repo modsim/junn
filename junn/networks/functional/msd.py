@@ -1,3 +1,4 @@
+"""Functional definitions for the MSD network."""
 from tensorflow.keras.layers import Activation, Conv2D, Reshape, concatenate
 
 
@@ -19,7 +20,7 @@ def msd_net(
     **kwargs
 ):
     """
-    A MS-D net according to
+    Generate a MS-D net.
 
     A mixed-scale dense convolutional neural network for image analysis
     by D. M. Pelt and J. A. Sethian. PNAS. 10.1073/pnas.1715832114
@@ -30,7 +31,8 @@ def msd_net(
     :param tile_size: Tile size
     :param activation: Activation used for each convolution layer
     :param last_activation: Final activation used
-    :param categorical: Whether the output should be categorical (multiple channels) or a single channel
+    :param categorical: Whether the output should be categorical \
+    (multiple channels) or a single channel
     :param output_channels: Count of output channels (i.e. classes)
     :param kernel_size: The kernel size used for the convolutions
     :param max_dilation: Maximum dilation used
@@ -38,7 +40,6 @@ def msd_net(
     :param kwargs:
     :return:
     """
-
     last_tensors = [input_tensor]
 
     for i in range(d):

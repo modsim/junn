@@ -1,3 +1,4 @@
+"""Network utility functions."""
 import inspect
 
 from tensorflow.keras.backend import count_params
@@ -11,6 +12,13 @@ from tensorflow.python.saved_model.signature_constants import (
 
 
 def get_weight_counts(model):
+    """
+    Calculate the count of weights of a model.
+
+    :param model:
+    :return:
+    """
+
     def sum_weights(layer_list):
         return sum(count_params(layer) for layer in layer_list)
 
@@ -26,6 +34,12 @@ def get_weight_counts(model):
 
 
 def get_default_signature(model):
+    """
+    Return the default signature of a model.
+
+    :param model:
+    :return:
+    """
     return (
         DEFAULT_SERVING_SIGNATURE_DEF_KEY,
         signature_serialization.find_function_to_export(_AugmentedGraphView(model)),
@@ -33,6 +47,12 @@ def get_default_signature(model):
 
 
 def format_size(bytes_):
+    """
+    Format a size in bytes with binary SI prefixes.
+
+    :param bytes_:
+    :return:
+    """
     suffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
 
     index = 0
@@ -45,6 +65,12 @@ def format_size(bytes_):
 
 
 def numpy_to_scalar(val):
+    """
+    Return a scalar from a NumPy value.
+
+    :param val:
+    :return:
+    """
     try:
         return val.item()
     except AttributeError:
@@ -52,7 +78,14 @@ def numpy_to_scalar(val):
 
 
 def get_keyword_arguments(func):
-    # could also check for .kind == inspect._ParameterKind.POSITIONAL_OR_KEYWORD, but how would new Python kw only react
+    """
+    Get the keyword arguments of a functuon.
+
+    :param func:
+    :return:
+    """
+    # could also check for .kind == inspect._ParameterKind.POSITIONAL_OR_KEYWORD,
+    # but how would new Python kw only react
     # noinspection PyProtectedMember
     return {
         key
@@ -62,6 +95,14 @@ def get_keyword_arguments(func):
 
 
 def warn_unused_arguments(parameters, func, log):
+    """
+    Warn if unused arguments are to be passed as kwargs to a function.
+
+    :param parameters:
+    :param func:
+    :param log:
+    :return:
+    """
     unused_arguments = set(parameters.keys()) - set(get_keyword_arguments(func))
     if unused_arguments != set():
         log.warning(

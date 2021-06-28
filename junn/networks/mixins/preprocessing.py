@@ -1,9 +1,12 @@
+"""Preprocessing mixins."""
 import tensorflow as tf
 
 
 class PerImageStandardizationPreprocessingMixin:
+    """Per image standardization preprocessing mixin for NeuralNetwork s."""
+
     # noinspection PyMethodMayBeStatic
-    def get_raw_fn(self):
+    def get_raw_fn(self):  # noqa: D102
         import tensorflow.python.util.deprecation as deprecation
 
         @tf.function

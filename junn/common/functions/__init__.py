@@ -1,13 +1,14 @@
+"""Additional helper functions mostly on tensors, written as TensorFlow-tf.functions."""
 import tensorflow as tf
 
 
 @tf.function
 def tf_function_nop(*input_):
     """
-    No operation. Yields the input parameters.
+    No operation, yield the input parameters.
 
-    :param input_:
-    :return:
+    :param input_: Parameter(s) to pass thru
+    :return: input_
     """
     return input_
 
@@ -15,10 +16,10 @@ def tf_function_nop(*input_):
 @tf.function
 def tf_function_one_arg_nop(input_):
     """
-    No operation. Takes and yields exactly one parameter.
+    No operation, take and yield exactly one parameter.
 
-    :param input_:
-    :return:
+    :param input_: Parameter to pass thru
+    :return: input_
     """
     return input_
 
@@ -26,11 +27,11 @@ def tf_function_one_arg_nop(input_):
 @tf.function
 def gaussian2d(size=(32, 32), sigma=0.5):
     """
-    Generates a Gaussian kernel (not normalized).
+    Generate a Gaussian kernel (not normalized).
 
     :param size: k x m size of the returned kernel
     :param sigma: standard deviation of the returned Gaussian
-    :return:
+    :return: A tensor with the Gaussian kernel
     """
     x, y = tf.meshgrid(tf.linspace(-1.0, 1.0, size[0]), tf.linspace(-1.0, 1.0, size[1]))
     d_squared = x * x + y * y
@@ -41,10 +42,10 @@ def gaussian2d(size=(32, 32), sigma=0.5):
 @tf.function
 def sigma_to_k(sigma):
     """
-    Calculates a suitable kernel size for a given standard deviation.
+    Calculate a suitable kernel size for a given standard deviation.
 
-    :param sigma:
-    :return:
+    :param sigma: Standard deviation
+    :return: Size
     """
     return int(sigma * 2 + 1)
 
@@ -52,11 +53,11 @@ def sigma_to_k(sigma):
 @tf.function
 def get_gaussian_kernel(sigma=0.5, k=None):
     """
-    Generates a Gaussian kernel (normalized).
+    Generate a Gaussian kernel (normalized).
 
-    :param sigma:
-    :param k:
-    :return:
+    :param sigma: Standard deviation
+    :param k: Desired kernel size, if None it will be calculated from sigma
+    :return: The Gaussian kernel, normalized
     """
     if k is None:
         k = sigma_to_k(sigma)
@@ -71,10 +72,10 @@ def get_gaussian_kernels(lower_sigma=0.8, upper_sigma=2.5, steps=25):
     """
     Generate a stack of Gaussian kernels (from lower_sigma to upper_sigma in steps).
 
-    :param lower_sigma:
-    :param upper_sigma:
-    :param steps:
-    :return:
+    :param lower_sigma: Lower boundary of standard deviations
+    :param upper_sigma: Upper boundary of standard deviations
+    :param steps: Number of steps
+    :return: A three dimensional tensor with the stacked Gaussian kernels
     """
     return tf.stack(
         [
@@ -87,10 +88,11 @@ def get_gaussian_kernels(lower_sigma=0.8, upper_sigma=2.5, steps=25):
 @tf.function
 def convolve(image, kernel):
     """
-    Performs a 2D convolution using the tf.nn.conv2d TF op.
-    :param image:
-    :param kernel:
-    :return:
+    Perform a 2D convolution using the tf.nn.conv2d TF op.
+
+    :param image: Image to convolve
+    :param kernel: Kernel to convolve
+    :return: Convolved image
     """
     return tf.nn.conv2d(
         image[tf.newaxis], kernel, strides=[1, 1, 1, 1], padding='SAME'
@@ -100,20 +102,22 @@ def convolve(image, kernel):
 @tf.function
 def pad_to(input_, target_block_size, mode='REFLECT'):
     """
-    Pads a tensor to match target_block_size.
+    Pad a tensor to match target_block_size.
 
-    :param input_:
-    :param target_block_size:
-    :param mode:
-    :return:
+    :param input_: Input tensor
+    :param target_block_size: Desired target block size
+    :param mode: Mode, passed to tf.pad
+    :return: The padded input_
     """
     image_shape = tf.shape(input_)
 
     # paddings = tf.convert_to_tensor(
     #     [[0,
-    #       tf.cond(target_block_size[0] >= image_shape[0], lambda: target_block_size[0] - image_shape[0], lambda: 0)],
+    #       tf.cond(target_block_size[0] >= image_shape[0],
+    #       lambda: target_block_size[0] - image_shape[0], lambda: 0)],
     #      [0,
-    #       tf.cond(target_block_size[1] >= image_shape[1], lambda: target_block_size[1] - image_shape[1], lambda: 0)],
+    #       tf.cond(target_block_size[1] >= image_shape[1],
+    #       lambda: target_block_size[1] - image_shape[1], lambda: 0)],
     #      [0,0]
     # ])
 

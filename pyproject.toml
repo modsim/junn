@@ -24,6 +24,20 @@ requires = [
     "tifffile",
     "roifile"
 ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
 
 [tool.black]
 skip-string-normalization = 1
@@ -38,6 +52,6 @@ addopts = "--cov=junn -vv --durations=0"
 
 [tool.flake8]
 max-line-length = 88
-exclude = "local"
-extend-ignore = "E203,"
+exclude = "local,*test.py,conf.py,automagicdoc.py"
+extend-ignore = "E203,ANN001,ANN002,ANN003,ANN101,ANN201,ANN202,ANN204,ANN205"
 max-complexity = 10

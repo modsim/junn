@@ -1,5 +1,4 @@
-import time
-
+"""Additional Keras callbacks."""
 import numpy as np
 import tensorflow as tf
 from junn_predict.common.timed import Timed
@@ -9,10 +8,7 @@ from ..io.tiffmasks import tiff_masks
 
 
 class TensorBoardSegmentationCallback(Callback):
-    """
-    The callback will run the model on a set of test images to produce test predictions (e.g. segmentations) observable
-    via TensorBoard.
-    """
+    """Callback to run the model on some test data for segmentations."""
 
     def __init__(
         self,
@@ -23,7 +19,8 @@ class TensorBoardSegmentationCallback(Callback):
         metrics=None,
     ):
         """
-        Constructor.
+        Construct the callback.
+
         :param tensorboard_callback:
         :param prediction_callback:
         :param input_file_name:
@@ -59,7 +56,8 @@ class TensorBoardSegmentationCallback(Callback):
     # noinspection PyUnusedLocal
     def on_epoch_end(self, epoch, logs=None):
         """
-        Callback run on every epoch end.
+        Run on every epoch end.
+
         :param epoch:
         :param logs:
         :return:

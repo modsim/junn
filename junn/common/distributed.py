@@ -1,3 +1,4 @@
+"""Helper functions for distributed training."""
 import logging
 import os
 
@@ -17,7 +18,8 @@ _initialized = False
 
 def is_running_distributed():
     """
-    Returns True if JUNN is running distributed and Horovod is initialized.
+    Return True if JUNN is running distributed and Horovod is initialized.
+
     :return:
     """
     return _running_distributed
@@ -41,17 +43,24 @@ def _init_horovod():
 
 
 def pin_devices():
+    """
+    Pin each GPU to a worker.
+
+    :return:
+    """
     devices = tf.config.get_visible_devices('GPU')
 
     if not devices:
         log.warning(
-            "Horovod: No GPUs available. Will not pin anything. (Is this really what you wanted?)"
+            "Horovod: No GPUs available. Will not pin anything. "
+            "(Is this really what you wanted?)"
         )
     else:
         target_device = devices[hvd.local_rank()]
 
         log.info(
-            "Horovod: Device pinning enabled, setting this worker (local/global %d/%d) to use %r",
+            "Horovod: Device pinning enabled, setting this worker "
+            "(local/global %d/%d) to use %r",
             hvd.local_rank(),
             hvd.rank(),
             target_device,
@@ -61,9 +70,9 @@ def pin_devices():
 
 def init(device_pinning=True):
     """
-    Initializes Horovod if present.
+    Initialize Horovod if present.
 
-    :param device_pinning: Whether to pin the local process to the physical device matching its rank.
+    :param device_pinning: Whether GPUs should be pinned.
     :return:
     """
     global _running_distributed, _initialized
@@ -79,7 +88,8 @@ def init(device_pinning=True):
     else:
         if 'OMPI_COMM_WORLD_SIZE' in os.environ:  # OMPI_COMM_WORLD_RANK
             log.warning(
-                "You have apparently started JUNN with mpirun, but Horovod is not available. Check your configuration!"
+                "You have apparently started JUNN with mpirun, "
+                "but Horovod is not available. Check your configuration!"
             )
 
     _initialized = True
@@ -87,7 +97,8 @@ def init(device_pinning=True):
 
 def local_rank():
     """
-    Returns the local rank. (Rank on the physical machine)
+    Return the local rank (on the physical machine).
+
     :return:
     """
     if hvd:
@@ -98,7 +109,10 @@ def local_rank():
 
 def rank():
     """
-    Returns the (global) rank. (Rank within all running instances on possibly multiple machines.)
+    Return the global rank.
+
+    This is the rank within all running instances on possibly multiple machines.
+
     :return:
     """
     if hvd:
@@ -109,7 +123,8 @@ def rank():
 
 def size():
     """
-    Returns the count of running instances.
+    Return the count of running instances.
+
     :return:
     """
     if hvd:
@@ -120,7 +135,8 @@ def size():
 
 def is_rank_zero():
     """
-    Returns whether the current process is rank zero, i.e. the main process.
+    Return whether the current process is rank zero, i.e. the main process.
+
     :return:
     """
     return rank() == 0
@@ -128,7 +144,10 @@ def is_rank_zero():
 
 def get_callbacks():
     """
-    Get (Keras) callbacks. If Horovod is present, this will be the BroadCastGlobalVariables callback.
+    Get Keras callbacks.
+
+    If Horovod is present, this will be the BroadCastGlobalVariables callback.
+
     :return:
     """
     callbacks = []
@@ -139,7 +158,10 @@ def get_callbacks():
 
 def wrap_optimizer(optimizer):
     """
-    Wraps the (Keras) optimizer. If Horovod is present, with DistributedOptimizer
+    Wrap the Keras optimizer.
+
+    If Horovod is present, with DistributedOptimizer.
+
     :param optimizer:
     :return:
     """
@@ -151,8 +173,10 @@ def wrap_optimizer(optimizer):
 
 def barrier(name):
     """
-    Creates a barrier which will synchronize all processes.
+    Create a barrier which will synchronize all processes.
+
     Can be used if the worker processes need to wait for the main process.
+
     :param name:
     :return:
     """

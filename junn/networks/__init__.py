@@ -1,3 +1,4 @@
+"""The network package, containing general infrastructure and helpers for networks."""
 import logging
 import os
 import tempfile
@@ -53,8 +54,11 @@ jsonpickle_numpy.register_handlers()
 
 __all__ = 'NeuralNetwork', 'Input', 'Model', 'warn_unused_arguments'
 
+
 # noinspection PyMethodMayBeStatic
 class NeuralNetwork(Selectable):
+    """The NeuralNetwork selectable base class."""
+
     PREDICTION_SIGNATURE = 'predict'
 
     ASSET_PREFIX = '_junn_'
@@ -66,6 +70,11 @@ class NeuralNetwork(Selectable):
     input_mode = None
 
     def __init__(self, **kwargs):
+        """
+        Initialize a NeuralNetwork class.
+
+        :param kwargs:
+        """
         self.log = logging.getLogger(__name__)
         self.model: Optional[tf.keras.models.Model] = None
 
@@ -90,9 +99,24 @@ class NeuralNetwork(Selectable):
         self.init(**kwargs)
 
     def init(self, **kwargs):
+        """
+        Inner init function to be overridden by networks.
+
+        :param kwargs:
+        :return:
+        """
         pass
 
     def easy_setup(self, model_path=None, load_from_path=None):
+        """
+        Perform an easy setup of the NeuralNetwork class.
+
+        Loads a model from the specified path.
+
+        :param model_path:
+        :param load_from_path:
+        :return:
+        """
         self.setup_model()
 
         self.try_load(model_path)
@@ -105,6 +129,12 @@ class NeuralNetwork(Selectable):
         self.save_model()
 
     def setup_model(self, print_statistics=True):
+        """
+        Create and setup the model.
+
+        :param print_statistics:
+        :return:
+        """
         self.model = self.get_model()
         self.model.junn_assets = self.assets
         self.prediction_fn = self.get_prediction_fn()
@@ -121,6 +151,11 @@ class NeuralNetwork(Selectable):
             self.print_model_statistics()
 
     def calculate_statistics(self):
+        """
+        Calculate model statistics and store them in the model instance.
+
+        :return:
+        """
         stats = get_weight_counts(self.model)
 
         stats['float'] = K.floatx()
@@ -129,6 +164,11 @@ class NeuralNetwork(Selectable):
         self._statistics_about_weights = stats
 
     def print_model_statistics(self):
+        """
+        Print the statistics stored in the model instance.
+
+        :return:
+        """
         stats = self._statistics_about_weights
 
         self.log.info(
@@ -146,6 +186,12 @@ class NeuralNetwork(Selectable):
         )
 
     def try_load(self, path):
+        """
+        Try loading the model specified.
+
+        :param path:
+        :return:
+        """
         if not distributed.is_rank_zero():  # only rank zero may load ...
             return
 
@@ -160,7 +206,8 @@ class NeuralNetwork(Selectable):
             and os.path.isdir(path)
             and os.path.isfile(checkpoint_index)
         ):
-            # expect partial is necessary to prevent warnings due to assets not being used by the vanilla keras model
+            # expect partial is necessary to prevent warnings due to assets
+            # not being used by the vanilla keras model
             self.model.load_weights(checkpoint).expect_partial()
             for asset in tf.io.gfile.listdir(asset_path):
                 self.update_asset(
@@ -176,7 +223,8 @@ class NeuralNetwork(Selectable):
                 )  # the current one will be the /next/
             except ValueError:
                 self.log.warning(
-                    "Tried to load existing saved model, but history data was apparently corrupted."
+                    "Tried to load existing saved model, "
+                    "but history data was apparently corrupted."
                 )
                 self.current_epoch = 1
             self.history = history
@@ -184,10 +232,23 @@ class NeuralNetwork(Selectable):
             pass
 
     def get_asset(self, name):
+        """
+        Get an asset by name.
+
+        :param name:
+        :return:
+        """
         assert name in self.assets
         return tf.io.read_file(self.assets[name]).numpy()
 
     def update_asset(self, name, contents=b''):
+        """
+        Update an asset by name.
+
+        :param name:
+        :param contents:
+        :return:
+        """
         if not distributed.is_rank_zero():  # only rank zero may save
             return
 
@@ -203,13 +264,19 @@ class NeuralNetwork(Selectable):
         tf.io.write_file(asset, contents)
 
     def save_model(self):
+        """
+        Save the model.
+
+        :return:
+        """
         if not distributed.is_rank_zero():  # only rank zero may save
             return
 
         history = getattr(self.model, 'history', None)
 
         if history:
-            # a history object contains a lot of unpicklable things, let's copy over some interesting parts
+            # a history object contains a lot of unpicklable things,
+            # let's copy over some interesting parts
 
             if self.history:
                 mini_history = dict(
@@ -230,7 +297,8 @@ class NeuralNetwork(Selectable):
 
             self.update_asset(self.ASSET_HISTORY, jsonpickle.dumps(mini_history))
 
-        # re-assure connection from local asset variable to model (i.e. soon-to-be serialized) asset variable
+        # re-assure connection from local asset variable to model
+        # (i.e. soon-to-be serialized) asset variable
         self.model.junn_assets = self.assets
 
         with deprecation.silence():  # prevents
@@ -264,13 +332,33 @@ class NeuralNetwork(Selectable):
                 fp.write(tflite_model)
 
     def set_model_path(self, path):
+        """
+        Set the model path.
+
+        :param path:
+        :return:
+        """
         self.model_path = path
 
     def get_loss(self):
+        """
+        Get the loss function.
+
+        To be overridden by a network.
+
+        :return:
+        """
         raise RuntimeError("Not implemented.")
 
     # noinspection PyMethodMayBeStatic
     def get_optimizer(self):
+        """
+        Get the optimizer.
+
+        To be overridden by a network.
+
+        :return:
+        """
         lr = LearningRate.value * distributed.size()
         return distributed.wrap_optimizer(
             dict(
@@ -283,9 +371,19 @@ class NeuralNetwork(Selectable):
         )
 
     def get_metrics(self):
+        """
+        Get the metrics to track.
+
+        :return:
+        """
         return Metrics.get_list()
 
     def compile(self):
+        """
+        Compile the model.
+
+        :return:
+        """
         self.model.compile(
             optimizer=self.get_optimizer(),
             loss=self.get_loss(),
@@ -294,9 +392,21 @@ class NeuralNetwork(Selectable):
         )
 
     def get_model(self):
+        """
+        Get the model.
+
+        To be overridden by the network.
+
+        :return:
+        """
         raise RuntimeError("Not implemented.")
 
     def get_callbacks(self):
+        """
+        Get the callbacks to be used as Keras callbacks.
+
+        :return:
+        """
         the_callbacks = distributed.get_callbacks()
 
         # all callbacks which are for _all_ workers must go here
@@ -362,6 +472,13 @@ class NeuralNetwork(Selectable):
         return the_callbacks
 
     def train(self, dataset, validation=None):
+        """
+        Run the training.
+
+        :param dataset:
+        :param validation:
+        :return:
+        """
         if self.callbacks is None:
             self.callbacks = self.get_callbacks()
 
@@ -386,6 +503,16 @@ class NeuralNetwork(Selectable):
         skip_raw: bool = False,
         batch: int = None,
     ):
+        """
+        Prepare the input.
+
+        :param dataset:
+        :param training:
+        :param validation:
+        :param skip_raw:
+        :param batch:
+        :return:
+        """
         if not skip_raw:
             dataset = self.apply_raw_fn(dataset)
 
@@ -401,9 +528,20 @@ class NeuralNetwork(Selectable):
         return dataset
 
     def get_raw_fn(self):
+        """
+        Return the raw data function.
+
+        :return:
+        """
         return tf_function_one_arg_nop
 
     def apply_raw_fn(self, dataset: tf.data.Dataset):
+        """
+        Apply the raw data function to the dataset.
+
+        :param dataset:
+        :return:
+        """
         fun = self.get_raw_fn()
 
         @tf.function
@@ -417,9 +555,22 @@ class NeuralNetwork(Selectable):
 
     # noinspection PyUnusedLocal
     def get_training_fn(self, validation: bool = False):
+        """
+        Get the training data function.
+
+        :param validation:
+        :return:
+        """
         return tf_function_nop
 
     def apply_training_fn(self, dataset: tf.data.Dataset, validation: bool = False):
+        """
+        Apply the training function to a dataset.
+
+        :param dataset:
+        :param validation:
+        :return:
+        """
         return dataset.map(
             self.get_training_fn(validation=validation),
             num_parallel_calls=PreprocessingMapParallel.prepared(),
@@ -427,20 +578,44 @@ class NeuralNetwork(Selectable):
 
     # noinspection PyUnusedLocal
     def get_training_batch_fn(self, validation: bool = False):
+        """
+        Get the training batch function.
+
+        :param validation:
+        :return:
+        """
         return tf_function_nop
 
     def apply_training_batch_fn(
         self, dataset: tf.data.Dataset, validation: bool = False
     ):
+        """
+        Apply the training batch function.
+
+        :param dataset:
+        :param validation:
+        :return:
+        """
         return dataset.map(
             self.get_training_batch_fn(validation=validation),
             num_parallel_calls=PreprocessingMapParallel.prepared(),
         )
 
     def get_signatures(self):
+        """
+        Get the signatures of the model.
+
+        :return:
+        """
         return {}
 
     def get_prediction_fn(self):
+        """
+        Get the prediction function of the model.
+
+        :return:
+        """
+
         @tf.function
         def _predict(input_):
             return self.model(input_)
@@ -448,4 +623,10 @@ class NeuralNetwork(Selectable):
         return _predict
 
     def predict(self, image):
+        """
+        Predict an image using the prediction function.
+
+        :param image:
+        :return:
+        """
         return self.prediction_fn(image)

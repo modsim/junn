@@ -1,3 +1,4 @@
+"""Dataset helper module."""
 import glob
 import os.path
 
@@ -10,7 +11,8 @@ from ..io.tiffmasks import tiff_masks, tiff_peek
 
 def dataset_from_tiff(file_name, mode='dynamic'):
     """
-    Loads a TIFF Stack with ImageJ ROIs as a TensorFlow Dataset (image, label).
+    Load a TIFF Stack with ImageJ ROIs as a TensorFlow Dataset (image, label).
+
     :param file_name:
     :param mode:
     :return:
@@ -42,7 +44,7 @@ def dataset_from_tiff(file_name, mode='dynamic'):
             args=(file_name,),
         )
     else:
-        raise RuntimeError('Invalid mode')
+        raise RuntimeError("Invalid mode")
 
     @tf.function
     def _force_three_dim(image, labels):
@@ -67,6 +69,7 @@ def dataset_from_tiff(file_name, mode='dynamic'):
 def dataset_from_filenames(file_names, label_names, filename_list=''):
     """
     Load a list of filenames as TensorFlow dataset (image, label).
+
     :param file_names:
     :param label_names:
     :param filename_list:

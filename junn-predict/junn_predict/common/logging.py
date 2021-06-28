@@ -1,3 +1,4 @@
+"""Logging helpers."""
 import logging
 import sys
 
@@ -6,28 +7,23 @@ import tqdm
 
 
 class TqdmLoggingHandler(logging.StreamHandler):
-    """
-    TqdmLoggingHandler
-    """
+    """TqdmLoggingHandler, outputs log messages to the console compatible with tqdm."""
 
-    def emit(self, record):
+    def emit(self, record):  # noqa: D102
         message = self.format(record)
         tqdm.tqdm.write(message)
 
 
 class DelayedFileLog(logging.StreamHandler):
-    """
-    DelayedFileLog is a log handler which will cache log messages up to the point where the desired log
-    filename is set using setFilename, at which
-    """
+    """DelayedFileLog will cache messages till it can write them to a specified file."""
 
-    def __init__(self):
+    def __init__(self):  # noqa: D107
         super().__init__()
 
         self.file_name = None
         self.buffer = []
 
-    def emit(self, record):
+    def emit(self, record):  # noqa: D102
         if self.file_name is None:
             message = self.format(record)
             self.buffer.append(message)
@@ -35,6 +31,13 @@ class DelayedFileLog(logging.StreamHandler):
             super().emit(record)
 
     def setFilename(self, file_name, mode='a'):
+        """
+        Set the filename to write the log messages to.
+
+        :param file_name: File name to use.
+        :param mode: File open mode, by default 'a'.
+        :return: None
+        """
         self.file_name = file_name
 
         stream = open(file_name, mode)
@@ -45,6 +48,12 @@ class DelayedFileLog(logging.StreamHandler):
 
 
 def setup_logging(level):
+    """
+    Set the logging up to the specified level.
+
+    :param level: Log level
+    :return: None
+    """
     name_to_log_level = get_name_to_log_level_dict()
     if level in name_to_log_level:
         level = name_to_log_level[level]
@@ -68,12 +77,22 @@ def setup_logging(level):
 
 
 def get_name_to_log_level_dict():
+    """
+    Return a dict with a mapping of log levels.
+
+    :return: The dict
+    """
     # noinspection PyProtectedMember
     name_to_log_level = logging._nameToLevel.copy()
     return name_to_log_level
 
 
 def get_log_levels():
+    """
+    Return supported log levels.
+
+    :return: List of log levels
+    """
     log_levels = [
         k for k, v in sorted(get_name_to_log_level_dict().items(), key=lambda ab: ab[1])
     ]

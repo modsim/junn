@@ -12,8 +12,9 @@ class ROIDetector(Selectable):
         image = (image * 255).astype(np.uint8)
 
         # this problem is non-trivial unfortunately:
-        # for matplotlib, pixels are -0.5 ... +0.5 wide, with integer coordinates at the center
-        # for fiji, pixels are 0 ... 1 wide, with a +0.5 coordinate at the center
+        # for matplotlib, pixels are -0.5 ... +0.5 wide, with integer coordinates
+        # at the center, for fiji, pixels are 0 ... 1 wide,
+        # with a +0.5 coordinate at the center
 
         # another problem: fiji expects single pixel regions to be surrounded by four points,
         # but opencv will reduce single pixel contours to a single coordinate
