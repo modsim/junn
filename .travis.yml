@@ -1,0 +1,15 @@
+language: python
+python:
+  - "3.9"
+
+install:
+  - "pip install pytest pytest-cov codecov"
+  - "pip install tensorflow tensorflow-addons tensorflow-serving-api"
+  - "pip install https://github.com/csachs/keras-nvidia-statistics/archive/refs/heads/main.zip"
+  - "pip install ./junn-predict"
+  - "pip install  ."
+
+script: pytest
+
+after_success:
+  - "codecov"
